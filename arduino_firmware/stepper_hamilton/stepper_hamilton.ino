@@ -15,7 +15,7 @@ void setup()
 
   LeftFrontWheel.setMaxSpeed(300);
   LeftBackWheel.setMaxSpeed(300);
-  RightFrontWheel.setMaxSpeed(30);
+  RightFrontWheel.setMaxSpeed(300);
   RightBackWheel.setMaxSpeed(300);
 
   LeftFrontWheel.setSpeed(0);
