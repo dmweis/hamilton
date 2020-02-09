@@ -3,10 +3,10 @@
 
 PacketSerial_<COBS, 0, 500> packetSerial;
 
-AccelStepper LeftBackWheel(1, 2, 5);
+AccelStepper RightFrontWheel(1, 2, 5);
 AccelStepper LeftFrontWheel(1, 4, 7);
 AccelStepper RightBackWheel(1, 3, 6);
-AccelStepper RightFrontWheel(1, 12, 13);
+AccelStepper LeftBackWheel(1, 12, 13);
 
 void setup()
 {
