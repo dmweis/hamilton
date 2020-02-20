@@ -8,8 +8,18 @@ AccelStepper LeftFrontWheel(1, 4, 7);
 AccelStepper RightBackWheel(1, 3, 6);
 AccelStepper LeftBackWheel(1, 12, 13);
 
+void motorsOff() {
+  digitalWrite(8, HIGH);
+}
+
+void motorsOn() {
+  digitalWrite(8, LOW);
+}
+
 void setup()
 {
+  pinMode(8, OUTPUT);
+  motorsOff();
   packetSerial.begin(115200);
   packetSerial.setPacketHandler(&onPacketReceived);
 
@@ -33,6 +43,8 @@ void loop()
   RightBackWheel.runSpeed();
 }
 
+
+
 void onPacketReceived(const uint8_t *buffer, size_t size)
 {
     if (size != 8)
@@ -44,6 +56,12 @@ void onPacketReceived(const uint8_t *buffer, size_t size)
 
     // Copy the packet into our temporary buffer.
     memcpy(tempBuffer, buffer, size);
+
+    if (tempBuffer[1] == 0 && tempBuffer[3] == 0 && tempBuffer[5] == 0 && tempBuffer[7] == 0){
+      motorsOff();
+    } else {
+      motorsOn();
+    }
 
     if (tempBuffer[0])
     {
