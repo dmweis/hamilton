@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import division
 
@@ -29,7 +29,7 @@ def dir(port, forward, strafe, rot):
     RB = (forward + rot - strafe)*255
     LF = (forward - rot - strafe)*255
     LB = (forward - rot + strafe)*255
-    send(port, clamp(LF), clamp(RF), clamp(LB), clamp(RB))
+    send(port, clamp(LF), clamp(-RF), clamp(LB), clamp(-RB))
 
 if __name__ == "__main__":
     with serial.Serial('/dev/ttyACM0', 115200) as port:
@@ -43,7 +43,7 @@ if __name__ == "__main__":
                 debug = ""
                 for event in events:
                     if event.code == "ABS_Y":
-                        x = -(event.state / 32767.0)
+                        x = (event.state / 32767.0)
                     if event.code == "ABS_X":
                         y = -(event.state / 32767.0)
                     if event.code == "ABS_RX":
