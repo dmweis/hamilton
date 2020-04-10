@@ -149,7 +149,7 @@ class SteamControllerHandler(object):
 
     def publisher_loop(self):
         while True:
-            dir(self.port, deadzone(-self.y), deadzone(self.x), deadzone(-self.side))
+            dir(self.port, deadzone(self.y), deadzone(self.x), deadzone(-self.side))
             sleep(0.01)
 
 if __name__ == "__main__":
