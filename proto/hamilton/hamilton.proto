@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package hamilton;
+
+message MoveCommand {
+    float x = 1;
+    float y = 2;
+    float yaw = 3;
+}
+
+message MoveRequest {
+    MoveCommand command = 1;
+}
+
+message MoveResponse {}
+
+service HamiltonRemote {
+    rpc MoveStream (stream MoveRequest) returns (MoveResponse) {}
+}
