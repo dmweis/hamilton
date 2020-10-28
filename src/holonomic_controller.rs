@@ -88,7 +88,7 @@ impl MotorMapping {
     }
 
     pub fn save(&self, path: &str) -> Result<()> {
-        let file = std::fs::File::open(path)?;
+        let file = std::fs::File::create(path)?;
         let writer = std::io::BufWriter::new(file);
         serde_json::to_writer_pretty(writer, self)?;
         Ok(())
