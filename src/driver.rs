@@ -22,6 +22,25 @@ pub struct WireMoveCommand {
     pub wheel_d: i32,
 }
 
+impl WireMoveCommand {
+    fn encode(&self) -> Vec<u8> {
+        let mut buffer = vec![];
+        // push wheels in the weird format that I chose for some reason
+        buffer.push((self.wheel_a > 0) as u8);
+        buffer.push(self.wheel_a.abs() as u8);
+        buffer.push((self.wheel_b > 0) as u8);
+        buffer.push(self.wheel_b.abs() as u8);
+        buffer.push((self.wheel_c > 0) as u8);
+        buffer.push(self.wheel_c.abs() as u8);
+        buffer.push((self.wheel_d > 0) as u8);
+        buffer.push(self.wheel_d.abs() as u8);
+
+        let mut encoded = postcard_cobs::encode_vec(&buffer);
+        encoded.push(0);
+        encoded
+    }
+}
+
 pub struct HamiltonProtocol;
 
 impl Decoder for HamiltonProtocol {
@@ -37,18 +56,7 @@ impl Encoder<WireMoveCommand> for HamiltonProtocol {
     type Error = Error;
 
     fn encode(&mut self, data: WireMoveCommand, buf: &mut BytesMut) -> Result<(), Error> {
-        let mut buffer = vec![];
-        // push wheels in the weird format that I chose for some reason
-        buffer.push((data.wheel_a > 0) as u8);
-        buffer.push(data.wheel_a as u8);
-        buffer.push((data.wheel_b > 0) as u8);
-        buffer.push(data.wheel_b as u8);
-        buffer.push((data.wheel_c > 0) as u8);
-        buffer.push(data.wheel_c as u8);
-        buffer.push((data.wheel_d > 0) as u8);
-        buffer.push(data.wheel_d as u8);
-
-        let encoded_data = postcard_cobs::encode_vec(&buffer);
+        let encoded_data = data.encode();
         buf.reserve(encoded_data.len());
         buf.put_slice(&encoded_data);
         Ok(())
@@ -76,5 +84,39 @@ impl HamiltonDriver {
             .await
             .map_err(|_| HamiltonError::CommError)?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn encoding_adds_trailing_zero() {
+        let move_command = WireMoveCommand::default();
+        let encoded = move_command.encode();
+        assert_eq!(*encoded.last().unwrap(), 0_u8);
+    }
+
+    #[test]
+    fn left_front_positive() {
+        let mut move_command = WireMoveCommand::default();
+        move_command.wheel_a = 255;
+        let encoded = move_command.encode();
+        let mut iter = encoded.iter();
+        assert_eq!(*iter.next().unwrap(), 3_u8);
+        assert_eq!(*iter.next().unwrap(), 1_u8);
+        assert_eq!(*iter.next().unwrap(), 255_u8);
+    }
+
+    #[test]
+    fn left_front_negative() {
+        let mut move_command = WireMoveCommand::default();
+        move_command.wheel_a = -255;
+        let encoded = move_command.encode();
+        let mut iter = encoded.iter();
+        assert_eq!(*iter.next().unwrap(), 1_u8);
+        assert_eq!(*iter.next().unwrap(), 2_u8);
+        assert_eq!(*iter.next().unwrap(), 255_u8);
     }
 }
