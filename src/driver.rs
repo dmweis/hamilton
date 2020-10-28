@@ -1,7 +1,7 @@
 use anyhow::Error;
 use anyhow::Result;
 use bytes::{BufMut, BytesMut};
-use futures::{SinkExt, StreamExt};
+use futures::SinkExt;
 use std::str;
 use tokio_util::codec::{Decoder, Encoder};
 

@@ -1,6 +1,9 @@
 use crate::driver;
 use anyhow::Result;
+use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
+use std::fs::create_dir_all;
+use std::path::Path;
 
 use crate::hamilton::MoveCommand;
 
@@ -60,7 +63,7 @@ impl From<MoveCommand> for HolonomicWheelCommand {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-enum MotorMappingFlags {
+pub enum MotorMappingFlags {
     A(bool),
     B(bool),
     C(bool),
@@ -68,7 +71,7 @@ enum MotorMappingFlags {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct MotorMapping {
+pub struct MotorMapping {
     pub left_front_controller: MotorMappingFlags,
     pub right_front_controller: MotorMappingFlags,
     pub left_rear_controller: MotorMappingFlags,
@@ -89,6 +92,43 @@ impl MotorMapping {
         let writer = std::io::BufWriter::new(file);
         serde_json::to_writer_pretty(writer, self)?;
         Ok(())
+    }
+
+    /// Try to load config from default system location
+    ///
+    /// If not present will write default config there
+    pub fn load_from_default() -> Result<Self> {
+        // TODO: This functionality may not belong here but whatever
+        if let Some(project_dirs) = ProjectDirs::from("com", "David Weis", "Hamilton controller") {
+            let config_dir = project_dirs.config_dir();
+            create_dir_all(config_dir)?;
+            let config_path = Path::new(config_dir).join("wheel_config.json");
+            let config_path = config_path.to_str().unwrap();
+            if let Ok(config) = Self::load(config_path) {
+                Ok(config)
+            } else {
+                let default = Self::default();
+                default.save_to_default()?;
+                Ok(default)
+            }
+        } else {
+            panic!("Failed to find system specific config folder\nIs $HOME not defined?");
+        }
+    }
+
+    /// Save to default location
+    pub fn save_to_default(&self) -> Result<()> {
+        // TODO: This method duplicated a lot from load_from_default
+        if let Some(project_dirs) = ProjectDirs::from("com", "David Weis", "Hamilton controller") {
+            let config_dir = project_dirs.config_dir();
+            create_dir_all(config_dir)?;
+            let config_path = Path::new(config_dir).join("wheel_config.json");
+            let config_path = config_path.to_str().unwrap();
+            Self::default().save(config_path)?;
+            Ok(())
+        } else {
+            panic!("Failed to find system specific config folder\nIs $HOME not defined?");
+        }
     }
 
     pub fn apply_commands_by_mapping(
