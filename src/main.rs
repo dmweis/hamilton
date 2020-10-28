@@ -4,7 +4,9 @@ use anyhow::Result;
 use clap::Clap;
 use hamilton::hamilton_remote_server::{HamiltonRemote, HamiltonRemoteServer};
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::Mutex;
+use tokio::time::delay_for;
 use tonic::{transport::Server, Request, Response, Status, Streaming};
 
 pub mod hamilton {
@@ -55,17 +57,41 @@ impl HamiltonRemoteController {
 struct Args {
     #[clap(about = "Serial port to use")]
     port: String,
+    #[clap(long = "test", about = "test wheels")]
+    test: bool,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let address = "127.0.0.1:5001".parse()?;
     let args = Args::parse();
-    let driver = driver::HamiltonDriver::new(&args.port)?;
-    let hamilton_remote = HamiltonRemoteController::new(
-        driver,
-        holonomic_controller::MotorMapping::load_from_default()?,
-    );
+    let mut driver = driver::HamiltonDriver::new(&args.port)?;
+    let mapping = holonomic_controller::MotorMapping::load_from_default()?;
+    if args.test {
+        let command = holonomic_controller::HolonomicWheelCommand::new(1.0, 0.0, 0.0, 0.0);
+        driver
+            .send(mapping.apply_commands_by_mapping(&command))
+            .await?;
+        delay_for(Duration::from_secs_f32(2.)).await;
+        let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 1.0, 0.0, 0.0);
+        driver
+            .send(mapping.apply_commands_by_mapping(&command))
+            .await?;
+        delay_for(Duration::from_secs_f32(2.)).await;
+        let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 1.0, 0.0);
+        driver
+            .send(mapping.apply_commands_by_mapping(&command))
+            .await?;
+        delay_for(Duration::from_secs_f32(2.)).await;
+        let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 1.0);
+        driver
+            .send(mapping.apply_commands_by_mapping(&command))
+            .await?;
+        delay_for(Duration::from_secs_f32(2.)).await;
+        return Ok(());
+    }
+
+    let address = "0.0.0.0:5001".parse()?;
+    let hamilton_remote = HamiltonRemoteController::new(driver, mapping);
 
     println!("Hamilton remote started at {}", address);
 
