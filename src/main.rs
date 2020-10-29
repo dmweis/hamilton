@@ -59,13 +59,19 @@ struct Args {
     port: String,
     #[clap(long = "test", about = "test wheels")]
     test: bool,
+    #[clap(about = "Config path")]
+    config: Option<String>,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
     let mut driver = driver::HamiltonDriver::new(&args.port)?;
-    let mapping = holonomic_controller::MotorMapping::load_from_default()?;
+    let mapping = if let Some(path) = args.config {
+        holonomic_controller::MotorMapping::load(&path)?
+    } else {
+        holonomic_controller::MotorMapping::load_from_default()?
+    };
     if args.test {
         let command = holonomic_controller::HolonomicWheelCommand::new(1.0, 0.0, 0.0, 0.0);
         driver
