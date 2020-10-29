@@ -59,7 +59,7 @@ struct Args {
     port: String,
     #[clap(long = "test", about = "test wheels")]
     test: bool,
-    #[clap(about = "Config path")]
+    #[clap(long = "config", about = "Config path")]
     config: Option<String>,
 }
 
