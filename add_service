@@ -1,0 +1,15 @@
+cat <<EOT | sudo tee /etc/systemd/system/hamilton.service > /dev/null
+[Unit]
+Description=hamilton
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/home/$(whoami)/.cargo/bin/hamilton /dev/hamilton_motors
+[Install]
+WantedBy=default.target
+EOT
+
+sudo systemctl daemon-reload
+sudo systemctl enable hamilton
+sudo systemctl restart hamilton
