@@ -87,6 +87,11 @@ async fn main() -> Result<()> {
             .send(mapping.apply_commands_by_mapping(&command))
             .await?;
         delay_for(Duration::from_secs_f32(2.)).await;
+        let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
+        driver
+            .send(mapping.apply_commands_by_mapping(&command))
+            .await?;
+        delay_for(Duration::from_secs_f32(1.)).await;
         return Ok(());
     }
 
