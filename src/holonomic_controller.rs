@@ -206,8 +206,10 @@ mod tests {
 
     #[test]
     fn mapping_checks_reversed() {
-        let mut mapping = MotorMapping::default();
-        mapping.right_front_controller = MotorMappingFlags::B(true);
+        let mapping = MotorMapping {
+            right_front_controller: MotorMappingFlags::B(true),
+            ..Default::default()
+        };
         let holo_wheel_command = HolonomicWheelCommand::new(1.0, 0.8, 0.6, 0.4);
         let wire_command = mapping.apply_commands_by_mapping(&holo_wheel_command);
         assert_eq!(wire_command.wheel_a, 255);
@@ -218,9 +220,11 @@ mod tests {
 
     #[test]
     fn mapping_checks_swapped() {
-        let mut mapping = MotorMapping::default();
-        mapping.right_front_controller = MotorMappingFlags::C(false);
-        mapping.left_rear_controller = MotorMappingFlags::B(false);
+        let mapping = MotorMapping {
+            right_front_controller: MotorMappingFlags::C(false),
+            left_rear_controller: MotorMappingFlags::B(false),
+            ..Default::default()
+        };
         let holo_wheel_command = HolonomicWheelCommand::new(1.0, 0.8, 0.6, 0.4);
         let wire_command = mapping.apply_commands_by_mapping(&holo_wheel_command);
         assert_eq!(wire_command.wheel_a, 255);
