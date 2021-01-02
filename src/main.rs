@@ -59,6 +59,8 @@ struct Args {
     port: String,
     #[clap(long = "test", about = "test wheels")]
     test: bool,
+    #[clap(long = "move_test", about = "test wheels")]
+    move_test: bool,
     #[clap(long = "config", about = "Config path")]
     config: Option<String>,
 }
@@ -93,6 +95,27 @@ async fn main() -> Result<()> {
             .send(mapping.apply_commands_by_mapping(&command))
             .await?;
         delay_for(Duration::from_secs_f32(2.)).await;
+        let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
+        driver
+            .send(mapping.apply_commands_by_mapping(&command))
+            .await?;
+        delay_for(Duration::from_secs_f32(1.)).await;
+        return Ok(());
+    }
+    if args.move_test {
+        let mapped_move_command = mapping.apply_commands_by_mapping(
+            &hamilton::MoveCommand {
+                x: 0.5,
+                y: 0.5,
+                yaw: 0.0,
+            }
+            .into(),
+        );
+        driver
+            .send(mapped_move_command)
+            .await
+            .map_err(|_| Status::internal("Failed to send message over serial port"))?;
+        delay_for(Duration::from_secs_f32(1.)).await;
         let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
         driver
             .send(mapping.apply_commands_by_mapping(&command))
