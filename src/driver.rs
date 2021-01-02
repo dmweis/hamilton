@@ -25,7 +25,6 @@ impl HamiltonDriver {
     }
 
     pub async fn send(&mut self, command: WireMoveCommand) -> Result<()> {
-        println!("Writing {:?}", command);
         self.driver
             .set_rotation_speed(1, command.wheel_a as f32)
             .await?;
