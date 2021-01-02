@@ -2,6 +2,7 @@ mod driver;
 mod holonomic_controller;
 use anyhow::Result;
 use clap::Clap;
+use driver::HamiltonDriver;
 use hamilton::hamilton_remote_server::{HamiltonRemote, HamiltonRemoteServer};
 use std::sync::Arc;
 use std::time::Duration;
@@ -14,7 +15,7 @@ pub mod hamilton {
 }
 
 struct HamiltonRemoteController {
-    driver: Arc<Mutex<driver::HamiltonDriver>>,
+    driver: Arc<Mutex<Box<dyn driver::HamiltonDriver>>>,
     motor_mapping: holonomic_controller::MotorMapping,
 }
 
@@ -42,7 +43,7 @@ impl HamiltonRemote for HamiltonRemoteController {
 
 impl HamiltonRemoteController {
     fn new(
-        driver: driver::HamiltonDriver,
+        driver: Box<dyn driver::HamiltonDriver>,
         controller_config: holonomic_controller::MotorMapping,
     ) -> Self {
         HamiltonRemoteController {
@@ -63,12 +64,20 @@ struct Args {
     move_test: bool,
     #[clap(long = "config", about = "Config path")]
     config: Option<String>,
+    #[clap(long, about = "Use stepper motor driver")]
+    use_stepper: bool,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    let mut driver = driver::HamiltonDriver::new(&args.port).await?;
+    let mut driver: Box<dyn HamiltonDriver> = if !args.use_stepper {
+        Box::new(driver::lss_driver::HamiltonLssDriver::new(&args.port).await?)
+    } else {
+        Box::new(driver::stepper_driver::HamiltonStepperDriver::new(
+            &args.port,
+        )?)
+    };
     let mapping = if let Some(path) = args.config {
         holonomic_controller::MotorMapping::load(&path)?
     } else {

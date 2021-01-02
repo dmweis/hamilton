@@ -1,30 +1,27 @@
+use super::{HamiltonDriver, WireMoveCommand};
 use anyhow::Result;
+use async_trait::async_trait;
 use lss_driver::LSSDriver;
 use std::str;
 
-#[derive(Default, Debug)]
-pub struct WireMoveCommand {
-    pub wheel_a: f32,
-    pub wheel_b: f32,
-    pub wheel_c: f32,
-    pub wheel_d: f32,
-}
-
-pub struct HamiltonDriver {
+pub struct HamiltonLssDriver {
     driver: LSSDriver,
 }
 
-impl HamiltonDriver {
-    pub async fn new(port: &str) -> Result<HamiltonDriver> {
+impl HamiltonLssDriver {
+    pub async fn new(port: &str) -> Result<Self> {
         let mut driver = LSSDriver::new(port)?;
         driver.set_maximum_speed(1, 360.0).await?;
         driver.set_maximum_speed(1, 360.0).await?;
         driver.set_maximum_speed(1, 360.0).await?;
         driver.set_maximum_speed(1, 360.0).await?;
-        Ok(HamiltonDriver { driver })
+        Ok(Self { driver })
     }
+}
 
-    pub async fn send(&mut self, command: WireMoveCommand) -> Result<()> {
+#[async_trait]
+impl HamiltonDriver for HamiltonLssDriver {
+    async fn send(&mut self, command: WireMoveCommand) -> Result<()> {
         self.driver
             .set_rotation_speed(1, command.wheel_a as f32)
             .await?;
