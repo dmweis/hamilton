@@ -68,7 +68,7 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    let mut driver = driver::HamiltonDriver::new(&args.port)?;
+    let mut driver = driver::HamiltonDriver::new(&args.port).await?;
     let mapping = if let Some(path) = args.config {
         holonomic_controller::MotorMapping::load(&path)?
     } else {

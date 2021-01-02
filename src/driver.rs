@@ -15,8 +15,12 @@ pub struct HamiltonDriver {
 }
 
 impl HamiltonDriver {
-    pub fn new(port: &str) -> Result<HamiltonDriver> {
-        let driver = LSSDriver::new(port)?;
+    pub async fn new(port: &str) -> Result<HamiltonDriver> {
+        let mut driver = LSSDriver::new(port)?;
+        driver.set_maximum_speed(1, 50.0 * 360.0).await?;
+        driver.set_maximum_speed(1, 50.0 * 360.0).await?;
+        driver.set_maximum_speed(1, 50.0 * 360.0).await?;
+        driver.set_maximum_speed(1, 50.0 * 360.0).await?;
         Ok(HamiltonDriver { driver })
     }
 
