@@ -11,7 +11,7 @@ trait Clampable {
     fn clamp_num(&self, a: Self, b: Self) -> Self;
 }
 
-impl Clampable for i32 {
+impl Clampable for f32 {
     fn clamp_num(&self, a: Self, b: Self) -> Self {
         let min = a.min(b);
         let max = a.max(b);
@@ -138,7 +138,7 @@ impl MotorMapping {
         fn apply_motor(
             wire_command: &mut driver::WireMoveCommand,
             mapping: &MotorMappingFlags,
-            value: i32,
+            value: f32,
         ) {
             match mapping {
                 MotorMappingFlags::A(reversed) if *reversed => wire_command.wheel_a = -value,
@@ -152,26 +152,26 @@ impl MotorMapping {
             }
         }
         let mut wire_command = driver::WireMoveCommand::default();
-        let clamp_range = self.multiplier as i32;
+        let clamp_range = self.multiplier;
         apply_motor(
             &mut wire_command,
             &self.left_front_controller,
-            ((command.left_front * self.multiplier) as i32).clamp_num(-clamp_range, clamp_range),
+            (command.left_front * self.multiplier).clamp_num(-clamp_range, clamp_range),
         );
         apply_motor(
             &mut wire_command,
             &self.right_front_controller,
-            ((command.right_front * self.multiplier) as i32).clamp_num(-clamp_range, clamp_range),
+            (command.right_front * self.multiplier).clamp_num(-clamp_range, clamp_range),
         );
         apply_motor(
             &mut wire_command,
             &self.left_rear_controller,
-            ((command.left_rear * self.multiplier) as i32).clamp_num(-clamp_range, clamp_range),
+            (command.left_rear * self.multiplier).clamp_num(-clamp_range, clamp_range),
         );
         apply_motor(
             &mut wire_command,
             &self.right_rear_controller,
-            ((command.right_rear * self.multiplier) as i32).clamp_num(-clamp_range, clamp_range),
+            (command.right_rear * self.multiplier).clamp_num(-clamp_range, clamp_range),
         );
         wire_command
     }
@@ -192,16 +192,17 @@ impl Default for MotorMapping {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use approx::assert_relative_eq;
 
     #[test]
     fn default_mapping_checks() {
         let mapping = MotorMapping::default();
         let holo_wheel_command = HolonomicWheelCommand::new(1.0, 0.8, 0.6, 0.4);
         let wire_command = mapping.apply_commands_by_mapping(&holo_wheel_command);
-        assert_eq!(wire_command.wheel_a, 255);
-        assert_eq!(wire_command.wheel_b, 204);
-        assert_eq!(wire_command.wheel_c, 153);
-        assert_eq!(wire_command.wheel_d, 102);
+        assert_relative_eq!(wire_command.wheel_a, 255.0);
+        assert_relative_eq!(wire_command.wheel_b, 204.0);
+        assert_relative_eq!(wire_command.wheel_c, 153.0);
+        assert_relative_eq!(wire_command.wheel_d, 102.0);
     }
 
     #[test]
@@ -212,10 +213,10 @@ mod tests {
         };
         let holo_wheel_command = HolonomicWheelCommand::new(1.0, 0.8, 0.6, 0.4);
         let wire_command = mapping.apply_commands_by_mapping(&holo_wheel_command);
-        assert_eq!(wire_command.wheel_a, 255);
-        assert_eq!(wire_command.wheel_b, -204);
-        assert_eq!(wire_command.wheel_c, 153);
-        assert_eq!(wire_command.wheel_d, 102);
+        assert_relative_eq!(wire_command.wheel_a, 255.0);
+        assert_relative_eq!(wire_command.wheel_b, -204.0);
+        assert_relative_eq!(wire_command.wheel_c, 153.0);
+        assert_relative_eq!(wire_command.wheel_d, 102.0);
     }
 
     #[test]
@@ -227,10 +228,10 @@ mod tests {
         };
         let holo_wheel_command = HolonomicWheelCommand::new(1.0, 0.8, 0.6, 0.4);
         let wire_command = mapping.apply_commands_by_mapping(&holo_wheel_command);
-        assert_eq!(wire_command.wheel_a, 255);
-        assert_eq!(wire_command.wheel_b, 153);
-        assert_eq!(wire_command.wheel_c, 204);
-        assert_eq!(wire_command.wheel_d, 102);
+        assert_relative_eq!(wire_command.wheel_a, 255.0);
+        assert_relative_eq!(wire_command.wheel_b, 153.0);
+        assert_relative_eq!(wire_command.wheel_c, 204.0);
+        assert_relative_eq!(wire_command.wheel_d, 102.0);
     }
 
     #[test]
@@ -238,10 +239,10 @@ mod tests {
         let mapping = MotorMapping::default();
         let holo_wheel_command = HolonomicWheelCommand::new(1., 0.5, 1., 0.8);
         let wire_command = mapping.apply_commands_by_mapping(&holo_wheel_command);
-        assert_eq!(wire_command.wheel_a, 255);
-        assert_eq!(wire_command.wheel_b, 127);
-        assert_eq!(wire_command.wheel_c, 255);
-        assert_eq!(wire_command.wheel_d, 204);
+        assert_relative_eq!(wire_command.wheel_a, 255.0);
+        assert_relative_eq!(wire_command.wheel_b, 127.5);
+        assert_relative_eq!(wire_command.wheel_c, 255.0);
+        assert_relative_eq!(wire_command.wheel_d, 204.0);
     }
 
     #[test]
@@ -249,37 +250,37 @@ mod tests {
         let mapping = MotorMapping::default();
         let holo_wheel_command = HolonomicWheelCommand::new(2., 2.5, -2.6, -7.);
         let wire_command = mapping.apply_commands_by_mapping(&holo_wheel_command);
-        assert_eq!(wire_command.wheel_a, 255);
-        assert_eq!(wire_command.wheel_b, 255);
-        assert_eq!(wire_command.wheel_c, -255);
-        assert_eq!(wire_command.wheel_d, -255);
+        assert_relative_eq!(wire_command.wheel_a, 255.0);
+        assert_relative_eq!(wire_command.wheel_b, 255.0);
+        assert_relative_eq!(wire_command.wheel_c, -255.0);
+        assert_relative_eq!(wire_command.wheel_d, -255.0);
     }
 
     #[test]
     fn clamp_max() {
-        let input = 200;
-        let clamped = input.clamp_num(100, -100);
-        assert_eq!(clamped, 100);
+        let input = 200.0;
+        let clamped = input.clamp_num(100.0, -100.0);
+        assert_relative_eq!(clamped, 100.0);
     }
 
     #[test]
     fn clamp_max_reversed() {
-        let input = 200;
-        let clamped = input.clamp_num(-100, 100);
-        assert_eq!(clamped, 100);
+        let input = 200.0;
+        let clamped = input.clamp_num(-100.0, 100.0);
+        assert_relative_eq!(clamped, 100.0);
     }
 
     #[test]
     fn clamp_min() {
-        let input = -200;
-        let clamped = input.clamp_num(-100, 100);
-        assert_eq!(clamped, -100);
+        let input = -200.0;
+        let clamped = input.clamp_num(-100.0, 100.0);
+        assert_relative_eq!(clamped, -100.0);
     }
 
     #[test]
     fn clamp_min_reversed() {
-        let input = -200;
-        let clamped = input.clamp_num(100, -100);
-        assert_eq!(clamped, -100);
+        let input = -200.0;
+        let clamped = input.clamp_num(100.0, -100.0);
+        assert_relative_eq!(clamped, -100.0);
     }
 }

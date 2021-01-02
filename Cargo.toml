@@ -28,4 +28,4 @@ lss_driver = "0.4"
 tonic-build = { version = "0.3", features = ["prost"] }
 
 [dev-dependencies]
-assert_approx_eq = "1.1"
+approx = "0.4"

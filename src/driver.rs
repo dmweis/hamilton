@@ -4,10 +4,10 @@ use std::str;
 
 #[derive(Default, Debug)]
 pub struct WireMoveCommand {
-    pub wheel_a: i32,
-    pub wheel_b: i32,
-    pub wheel_c: i32,
-    pub wheel_d: i32,
+    pub wheel_a: f32,
+    pub wheel_b: f32,
+    pub wheel_c: f32,
+    pub wheel_d: f32,
 }
 
 pub struct HamiltonDriver {
