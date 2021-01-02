@@ -384,6 +384,7 @@ dependencies = [
  "clap",
  "directories",
  "futures",
+ "lss_driver",
  "postcard-cobs",
  "prost",
  "serde",
@@ -543,6 +544,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "lss_driver"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "efb44eff16818c576c7ff14fe52a9a691df2d45e2685b73e95961e8fa627e647"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "futures",
+ "thiserror",
+ "tokio",
+ "tokio-serial",
+ "tokio-util",
+]
+
+[[package]]
 name = "mach"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -673,6 +689,16 @@ dependencies = [
  "cfg-if",
  "libc",
  "void",
+]
+
+[[package]]
+name = "num_cpus"
+version = "1.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "05499f3756671c15885fee9034446956fff3f243d6077b91e5767df161f766b3"
+dependencies = [
+ "hermit-abi",
+ "libc",
 ]
 
 [[package]]
@@ -1141,6 +1167,7 @@ dependencies = [
  "lazy_static",
  "memchr",
  "mio",
+ "num_cpus",
  "pin-project-lite",
  "slab",
  "tokio-macros",
