@@ -2,7 +2,7 @@ use anyhow::Result;
 use lss_driver::LSSDriver;
 use std::str;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct WireMoveCommand {
     pub wheel_a: i32,
     pub wheel_b: i32,
@@ -21,6 +21,7 @@ impl HamiltonDriver {
     }
 
     pub async fn send(&mut self, command: WireMoveCommand) -> Result<()> {
+        println!("Writing {:?}", command);
         self.driver
             .set_rotation_speed(1, command.wheel_a as f32)
             .await?;
