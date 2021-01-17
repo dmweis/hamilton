@@ -74,6 +74,9 @@ async fn main() -> Result<()> {
     let mut driver: Box<dyn HamiltonDriver> = if !args.use_stepper {
         Box::new(driver::lss_driver::HamiltonLssDriver::new(&args.port).await?)
     } else {
+        #[cfg(target_family = "windows")]
+        panic!("Stepper driver not supported on windows");
+        #[cfg(not(target_family = "windows"))]
         Box::new(driver::stepper_driver::HamiltonStepperDriver::new(
             &args.port,
         )?)

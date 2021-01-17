@@ -1,4 +1,5 @@
 pub mod lss_driver;
+#[cfg(not(target_family = "windows"))]
 pub mod stepper_driver;
 
 use anyhow::Result;
@@ -12,6 +13,7 @@ pub struct WireMoveCommand {
     pub wheel_d: f32,
 }
 
+#[cfg(not(target_family = "windows"))]
 impl WireMoveCommand {
     fn encode(&self) -> Vec<u8> {
         let mut buffer = vec![];

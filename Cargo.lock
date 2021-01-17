@@ -548,9 +548,9 @@ dependencies = [
 
 [[package]]
 name = "lss_driver"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efb44eff16818c576c7ff14fe52a9a691df2d45e2685b73e95961e8fa627e647"
+checksum = "56279455a06f8702a0f44823c9d1ca3dab66cc265cf630709b74b2e2835266e4"
 dependencies = [
  "async-trait",
  "bytes",
