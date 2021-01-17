@@ -4,6 +4,7 @@ pub mod stepper_driver;
 
 use anyhow::Result;
 use async_trait::async_trait;
+use lss_driver::LedColor;
 
 #[derive(Default, Debug)]
 pub struct WireMoveCommand {
@@ -36,4 +37,6 @@ impl WireMoveCommand {
 #[async_trait]
 pub trait HamiltonDriver: Send + Sync {
     async fn send(&mut self, command: WireMoveCommand) -> Result<()>;
+    async fn read_voltage(&mut self) -> Result<Option<f32>>;
+    async fn set_color(&mut self, color: LedColor) -> Result<()>;
 }

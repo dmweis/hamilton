@@ -66,6 +66,14 @@ impl HamiltonDriver for HamiltonStepperDriver {
             .map_err(|_| HamiltonError::CommError)?;
         Ok(())
     }
+
+    async fn read_voltage(&mut self) -> Option<f32> {
+        Ok(None)
+    }
+
+    async fn set_color(&mut self, _color: LedColor) -> Result<()> {
+        Ok(())
+    }
 }
 
 #[cfg(test)]
