@@ -7,9 +7,9 @@ use hamilton::hamilton_remote_server::{HamiltonRemote, HamiltonRemoteServer};
 use holonomic_controller::MotorMapping;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio;
 use tokio::sync::Mutex;
-use tokio::time::sleep;
+use tokio::time::{interval, sleep};
+use tokio::{self, spawn};
 use tonic::{transport::Server, Request, Response, Status, Streaming};
 
 pub mod hamilton {
@@ -45,11 +45,11 @@ impl HamiltonRemote for HamiltonRemoteController {
 
 impl HamiltonRemoteController {
     fn new(
-        driver: Box<dyn driver::HamiltonDriver>,
+        driver: Arc<Mutex<Box<dyn driver::HamiltonDriver>>>,
         controller_config: holonomic_controller::MotorMapping,
     ) -> Self {
         HamiltonRemoteController {
-            driver: Arc::new(Mutex::new(driver)),
+            driver: driver,
             motor_mapping: controller_config,
         }
     }
@@ -96,8 +96,29 @@ async fn main() -> Result<()> {
     }
 
     let address = "0.0.0.0:5001".parse()?;
-    let hamilton_remote = HamiltonRemoteController::new(driver, mapping);
 
+    let shared_driver = Arc::new(Mutex::new(driver));
+
+    let hamilton_remote = HamiltonRemoteController::new(Arc::clone(&shared_driver), mapping);
+    spawn(async move {
+        let mut reading_rate = interval(Duration::from_secs(1));
+        loop {
+            reading_rate.tick().await;
+            let mut driver = shared_driver.lock().await;
+            if let Ok(Some(voltage)) = driver.read_voltage().await {
+                let color = if voltage < 3.0 * 3.6 {
+                    lss_driver::LedColor::Red
+                } else {
+                    lss_driver::LedColor::Magenta
+                };
+                if driver.set_color(color).await.is_err() {
+                    eprintln!("Failed to set color");
+                }
+            } else {
+                eprintln!("Failed to read voltage");
+            }
+        }
+    });
     println!("Hamilton remote started at {}", address);
 
     Server::builder()
