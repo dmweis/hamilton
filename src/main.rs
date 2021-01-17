@@ -4,6 +4,7 @@ use anyhow::Result;
 use clap::Clap;
 use driver::HamiltonDriver;
 use hamilton::hamilton_remote_server::{HamiltonRemote, HamiltonRemoteServer};
+use holonomic_controller::MotorMapping;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio;
@@ -73,7 +74,7 @@ struct Args {
 async fn main() -> Result<()> {
     let args = Args::parse();
     let mut driver: Box<dyn HamiltonDriver> = if !args.use_stepper {
-        Box::new(driver::lss_driver::HamiltonLssDriver::new(&args.port).await?)
+        Box::new(driver::hamilton_lss_driver::HamiltonLssDriver::new(&args.port).await?)
     } else {
         #[cfg(target_family = "windows")]
         panic!("Stepper driver not supported on windows");

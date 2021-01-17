@@ -1,4 +1,4 @@
-pub mod lss_driver;
+pub mod hamilton_lss_driver;
 #[cfg(not(target_family = "windows"))]
 pub mod stepper_driver;
 

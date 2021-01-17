@@ -1,7 +1,7 @@
 use super::{HamiltonDriver, WireMoveCommand};
 use anyhow::Result;
 use async_trait::async_trait;
-use lss_driver::LSSDriver;
+use lss_driver::{LSSDriver, LedColor};
 use std::str;
 
 pub struct HamiltonLssDriver {
@@ -34,6 +34,23 @@ impl HamiltonDriver for HamiltonLssDriver {
         self.driver
             .set_rotation_speed(4, command.wheel_d as f32)
             .await?;
+        Ok(())
+    }
+
+    async fn read_voltage(&mut self) -> Result<Option<f32>> {
+        let mut voltages = Vec::with_capacity(4);
+        voltages.push(self.driver.query_voltage(1).await?);
+        voltages.push(self.driver.query_voltage(2).await?);
+        voltages.push(self.driver.query_voltage(3).await?);
+        voltages.push(self.driver.query_voltage(4).await?);
+        Ok(Some(voltages.iter().sum::<f32>() / voltages.len() as f32))
+    }
+
+    async fn set_color(&mut self, color: LedColor) -> Result<()> {
+        self.driver.set_color(1, color).await?;
+        self.driver.set_color(2, color).await?;
+        self.driver.set_color(3, color).await?;
+        self.driver.set_color(4, color).await?;
         Ok(())
     }
 }
