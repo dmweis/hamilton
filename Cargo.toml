@@ -7,12 +7,12 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tonic = "0.3"
-tokio = { version = "0.2", features = ["macros", "time"] }
-prost = "0.6"
+tonic = "0.4"
+tokio = { version = "1.0", features = ["macros", "time", "rt-multi-thread"] }
+prost = "0.7"
 clap = "3.0.0-beta.1"
 tokio-serial = { version = "4.3", default-features = false }
-bytes = "0.5"
+bytes = "1.0"
 async-trait = "0.1"
 thiserror = "1.0"
 anyhow = "1.0"
@@ -25,7 +25,7 @@ directories = "3.0"
 lss_driver = "0.5"
 
 [build-dependencies]
-tonic-build = { version = "0.3", features = ["prost"] }
+tonic-build = { version = "0.4", features = ["prost"] }
 
 [dev-dependencies]
 approx = "0.4"

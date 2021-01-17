@@ -6,8 +6,9 @@ use driver::HamiltonDriver;
 use hamilton::hamilton_remote_server::{HamiltonRemote, HamiltonRemoteServer};
 use std::sync::Arc;
 use std::time::Duration;
+use tokio;
 use tokio::sync::Mutex;
-use tokio::time::delay_for;
+use tokio::time::sleep;
 use tonic::{transport::Server, Request, Response, Status, Streaming};
 
 pub mod hamilton {
@@ -91,27 +92,27 @@ async fn main() -> Result<()> {
         driver
             .send(mapping.apply_commands_by_mapping(&command))
             .await?;
-        delay_for(Duration::from_secs_f32(2.)).await;
+        sleep(Duration::from_secs_f32(2.)).await;
         let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 1.0, 0.0, 0.0);
         driver
             .send(mapping.apply_commands_by_mapping(&command))
             .await?;
-        delay_for(Duration::from_secs_f32(2.)).await;
+        sleep(Duration::from_secs_f32(2.)).await;
         let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 1.0, 0.0);
         driver
             .send(mapping.apply_commands_by_mapping(&command))
             .await?;
-        delay_for(Duration::from_secs_f32(2.)).await;
+        sleep(Duration::from_secs_f32(2.)).await;
         let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 1.0);
         driver
             .send(mapping.apply_commands_by_mapping(&command))
             .await?;
-        delay_for(Duration::from_secs_f32(2.)).await;
+        sleep(Duration::from_secs_f32(2.)).await;
         let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
         driver
             .send(mapping.apply_commands_by_mapping(&command))
             .await?;
-        delay_for(Duration::from_secs_f32(1.)).await;
+        sleep(Duration::from_secs_f32(1.)).await;
         return Ok(());
     }
     if args.move_test {
@@ -127,7 +128,7 @@ async fn main() -> Result<()> {
             .send(mapped_move_command)
             .await
             .map_err(|_| Status::internal("Failed to send message over serial port"))?;
-        delay_for(Duration::from_secs_f32(1.5)).await;
+        sleep(Duration::from_secs_f32(1.5)).await;
         let mapped_move_command = mapping.apply_commands_by_mapping(
             &hamilton::MoveCommand {
                 x: -0.25,
@@ -140,12 +141,12 @@ async fn main() -> Result<()> {
             .send(mapped_move_command)
             .await
             .map_err(|_| Status::internal("Failed to send message over serial port"))?;
-        delay_for(Duration::from_secs_f32(1.5)).await;
+        sleep(Duration::from_secs_f32(1.5)).await;
         let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
         driver
             .send(mapping.apply_commands_by_mapping(&command))
             .await?;
-        delay_for(Duration::from_secs_f32(1.)).await;
+        sleep(Duration::from_secs_f32(1.)).await;
         return Ok(());
     }
 
