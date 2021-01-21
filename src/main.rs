@@ -75,7 +75,8 @@ async fn main() -> Result<()> {
     let args = Args::parse();
     tracing_subscriber::fmt()
         .pretty()
-        .with_max_level(LevelFilter::TRACE)
+        .with_env_filter("hamilton=info")
+        .with_max_level(LevelFilter::INFO)
         .init();
     let mut driver = driver::hamilton_lss_driver::HamiltonLssDriver::new(&args.port).await?;
 
