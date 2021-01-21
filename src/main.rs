@@ -49,7 +49,7 @@ impl HamiltonRemoteController {
         controller_config: holonomic_controller::MotorMapping,
     ) -> Self {
         HamiltonRemoteController {
-            driver: driver,
+            driver,
             motor_mapping: controller_config,
         }
     }
@@ -66,23 +66,14 @@ struct Args {
     move_test: bool,
     #[clap(long = "config", about = "Config path")]
     config: Option<String>,
-    #[clap(long, about = "Use stepper motor driver")]
-    use_stepper: bool,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    let mut driver: Box<dyn HamiltonDriver> = if !args.use_stepper {
-        Box::new(driver::hamilton_lss_driver::HamiltonLssDriver::new(&args.port).await?)
-    } else {
-        #[cfg(target_family = "windows")]
-        panic!("Stepper driver not supported on windows");
-        #[cfg(not(target_family = "windows"))]
-        Box::new(driver::stepper_driver::HamiltonStepperDriver::new(
-            &args.port,
-        )?)
-    };
+    let mut driver: Box<dyn HamiltonDriver> =
+        Box::new(driver::hamilton_lss_driver::HamiltonLssDriver::new(&args.port).await?);
+
     let mapping = if let Some(path) = args.config {
         holonomic_controller::MotorMapping::load(&path)?
     } else {
