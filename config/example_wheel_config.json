@@ -1,0 +1,15 @@
+{
+    "left_front_controller": {
+        "B": true
+    },
+    "right_front_controller": {
+        "C": false
+    },
+    "left_rear_controller": {
+        "A": true
+    },
+    "right_rear_controller": {
+        "D": false
+    },
+    "multiplier": 360.0
+}
