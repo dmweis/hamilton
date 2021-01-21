@@ -1,6 +1,5 @@
-use super::{HamiltonDriver, WireMoveCommand};
+use super::WireMoveCommand;
 use anyhow::Result;
-use async_trait::async_trait;
 use lss_driver::{LSSDriver, LedColor};
 use std::str;
 
@@ -17,11 +16,8 @@ impl HamiltonLssDriver {
         driver.set_maximum_speed(1, 360.0).await?;
         Ok(Self { driver })
     }
-}
 
-#[async_trait]
-impl HamiltonDriver for HamiltonLssDriver {
-    async fn send(&mut self, command: WireMoveCommand) -> Result<()> {
+    pub async fn send(&mut self, command: WireMoveCommand) -> Result<()> {
         self.driver
             .set_rotation_speed(1, command.wheel_a as f32)
             .await?;
@@ -37,16 +33,16 @@ impl HamiltonDriver for HamiltonLssDriver {
         Ok(())
     }
 
-    async fn read_voltage(&mut self) -> Result<Option<f32>> {
+    pub async fn read_voltage(&mut self) -> Result<f32> {
         let mut voltages = Vec::with_capacity(4);
         voltages.push(self.driver.query_voltage(1).await?);
         voltages.push(self.driver.query_voltage(2).await?);
         voltages.push(self.driver.query_voltage(3).await?);
         voltages.push(self.driver.query_voltage(4).await?);
-        Ok(Some(voltages.iter().sum::<f32>() / voltages.len() as f32))
+        Ok(voltages.iter().sum::<f32>() / voltages.len() as f32)
     }
 
-    async fn set_color(&mut self, color: LedColor) -> Result<()> {
+    pub async fn set_color(&mut self, color: LedColor) -> Result<()> {
         self.driver.set_color(1, color).await?;
         self.driver.set_color(2, color).await?;
         self.driver.set_color(3, color).await?;

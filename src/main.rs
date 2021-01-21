@@ -2,7 +2,7 @@ mod driver;
 mod holonomic_controller;
 use anyhow::Result;
 use clap::Clap;
-use driver::HamiltonDriver;
+use driver::HamiltonLssDriver;
 use hamilton::hamilton_remote_server::{HamiltonRemote, HamiltonRemoteServer};
 use holonomic_controller::MotorMapping;
 use std::sync::Arc;
@@ -17,7 +17,7 @@ pub mod hamilton {
 }
 
 struct HamiltonRemoteController {
-    driver: Arc<Mutex<Box<dyn driver::HamiltonDriver>>>,
+    driver: Arc<Mutex<HamiltonLssDriver>>,
     motor_mapping: holonomic_controller::MotorMapping,
 }
 
@@ -45,7 +45,7 @@ impl HamiltonRemote for HamiltonRemoteController {
 
 impl HamiltonRemoteController {
     fn new(
-        driver: Arc<Mutex<Box<dyn driver::HamiltonDriver>>>,
+        driver: Arc<Mutex<HamiltonLssDriver>>,
         controller_config: holonomic_controller::MotorMapping,
     ) -> Self {
         HamiltonRemoteController {
@@ -71,8 +71,7 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    let mut driver: Box<dyn HamiltonDriver> =
-        Box::new(driver::hamilton_lss_driver::HamiltonLssDriver::new(&args.port).await?);
+    let mut driver = driver::hamilton_lss_driver::HamiltonLssDriver::new(&args.port).await?;
 
     let mapping = if let Some(path) = args.config {
         holonomic_controller::MotorMapping::load(&path)?
@@ -96,7 +95,7 @@ async fn main() -> Result<()> {
         loop {
             reading_rate.tick().await;
             let mut driver = shared_driver.lock().await;
-            if let Ok(Some(voltage)) = driver.read_voltage().await {
+            if let Ok(voltage) = driver.read_voltage().await {
                 let color = if voltage < 3.0 * 3.6 {
                     lss_driver::LedColor::Red
                 } else {
@@ -120,7 +119,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn wheels_test(driver: &mut Box<dyn HamiltonDriver>, mapping: &MotorMapping) -> Result<()> {
+async fn wheels_test(driver: &mut HamiltonLssDriver, mapping: &MotorMapping) -> Result<()> {
     let command = holonomic_controller::HolonomicWheelCommand::new(1.0, 0.0, 0.0, 0.0);
     driver
         .send(mapping.apply_commands_by_mapping(&command))
@@ -149,7 +148,7 @@ async fn wheels_test(driver: &mut Box<dyn HamiltonDriver>, mapping: &MotorMappin
     return Ok(());
 }
 
-async fn move_test(driver: &mut Box<dyn HamiltonDriver>, mapping: &MotorMapping) -> Result<()> {
+async fn move_test(driver: &mut HamiltonLssDriver, mapping: &MotorMapping) -> Result<()> {
     let mapped_move_command = mapping.apply_commands_by_mapping(
         &hamilton::MoveCommand {
             x: 0.25,
