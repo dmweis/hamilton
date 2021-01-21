@@ -11,6 +11,8 @@ use tokio::sync::Mutex;
 use tokio::time::{interval, sleep};
 use tokio::{self, spawn};
 use tonic::{transport::Server, Request, Response, Status, Streaming};
+use tracing::*;
+use tracing_subscriber::filter::LevelFilter;
 
 pub mod hamilton {
     tonic::include_proto!("hamilton");
@@ -58,7 +60,7 @@ impl HamiltonRemoteController {
 #[derive(Clap)]
 #[clap()]
 struct Args {
-    #[clap(about = "Serial port to use")]
+    #[clap(about = "Serial port to use", default_value = "somehting")]
     port: String,
     #[clap(long = "test", about = "test wheels")]
     test: bool,
@@ -71,6 +73,10 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
+    tracing_subscriber::fmt()
+        .pretty()
+        .with_max_level(LevelFilter::TRACE)
+        .init();
     let mut driver = driver::hamilton_lss_driver::HamiltonLssDriver::new(&args.port).await?;
 
     let mapping = if let Some(path) = args.config {
@@ -96,20 +102,21 @@ async fn main() -> Result<()> {
             reading_rate.tick().await;
             let mut driver = shared_driver.lock().await;
             if let Ok(voltage) = driver.read_voltage().await {
+                info!("Current voltage is {}", voltage);
                 let color = if voltage < 3.0 * 3.6 {
                     lss_driver::LedColor::Red
                 } else {
                     lss_driver::LedColor::Magenta
                 };
                 if driver.set_color(color).await.is_err() {
-                    eprintln!("Failed to set color");
+                    error!("Failed to set color");
                 }
             } else {
-                eprintln!("Failed to read voltage");
+                error!("Failed to read voltage");
             }
         }
     });
-    println!("Hamilton remote started at {}", address);
+    info!("Hamilton remote started at {}", address);
 
     Server::builder()
         .add_service(HamiltonRemoteServer::new(hamilton_remote))
