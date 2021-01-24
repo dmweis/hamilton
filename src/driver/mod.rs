@@ -1,11 +1,23 @@
 pub mod hamilton_lss_driver;
 
-pub use hamilton_lss_driver::HamiltonLssDriver;
+pub use hamilton_lss_driver::{BodyConfig, HamiltonLssDriver};
 
-#[derive(Default, Debug)]
-pub struct WireMoveCommand {
-    pub wheel_a: f32,
-    pub wheel_b: f32,
-    pub wheel_c: f32,
-    pub wheel_d: f32,
+#[derive(Debug)]
+pub struct MotorCommand {
+    id: u8,
+    speed: f32,
+}
+
+impl MotorCommand {
+    pub fn new(id: u8, speed: f32) -> Self {
+        Self { id, speed }
+    }
+
+    pub fn id(&self) -> u8 {
+        self.id
+    }
+
+    pub fn speed(&self) -> f32 {
+        self.speed
+    }
 }

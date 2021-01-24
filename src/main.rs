@@ -2,9 +2,8 @@ mod driver;
 mod holonomic_controller;
 use anyhow::Result;
 use clap::Clap;
-use driver::HamiltonLssDriver;
+use driver::{BodyConfig, HamiltonLssDriver};
 use hamilton::hamilton_remote_server::{HamiltonRemote, HamiltonRemoteServer};
-use holonomic_controller::MotorMapping;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
@@ -20,7 +19,6 @@ pub mod hamilton {
 
 struct HamiltonRemoteController {
     driver: Arc<Mutex<HamiltonLssDriver>>,
-    motor_mapping: holonomic_controller::MotorMapping,
 }
 
 #[tonic::async_trait]
@@ -32,12 +30,9 @@ impl HamiltonRemote for HamiltonRemoteController {
         let mut command_stream = commands.into_inner();
         while let Some(message) = command_stream.message().await? {
             let move_command = message.command.unwrap();
-            let mapped_move_command = self
-                .motor_mapping
-                .apply_commands_by_mapping(&move_command.into());
             let mut driver = self.driver.lock().await;
             driver
-                .send(mapped_move_command)
+                .send(move_command.into())
                 .await
                 .map_err(|_| Status::internal("Failed to send message over serial port"))?;
         }
@@ -46,21 +41,15 @@ impl HamiltonRemote for HamiltonRemoteController {
 }
 
 impl HamiltonRemoteController {
-    fn new(
-        driver: Arc<Mutex<HamiltonLssDriver>>,
-        controller_config: holonomic_controller::MotorMapping,
-    ) -> Self {
-        HamiltonRemoteController {
-            driver,
-            motor_mapping: controller_config,
-        }
+    fn new(driver: Arc<Mutex<HamiltonLssDriver>>) -> Self {
+        HamiltonRemoteController { driver }
     }
 }
 
 #[derive(Clap)]
 #[clap()]
 struct Args {
-    #[clap(about = "Serial port to use", default_value = "somehting")]
+    #[clap(about = "Serial port to use")]
     port: String,
     #[clap(long = "test", about = "test wheels")]
     test: bool,
@@ -78,25 +67,27 @@ async fn main() -> Result<()> {
         .with_env_filter("hamilton=info")
         .with_max_level(LevelFilter::INFO)
         .init();
-    let mut driver = driver::hamilton_lss_driver::HamiltonLssDriver::new(&args.port).await?;
-
-    let mapping = if let Some(path) = args.config {
-        holonomic_controller::MotorMapping::load(&path)?
+    let body_config = if let Some(path) = args.config {
+        info!("Loading configuration from {}", path);
+        BodyConfig::load(&path)?
     } else {
-        holonomic_controller::MotorMapping::load_from_default()?
+        info!("Loading default configuration");
+        BodyConfig::load_from_default()?
     };
+    let mut driver = HamiltonLssDriver::new(&args.port, body_config).await?;
+
     if args.test {
-        return wheels_test(&mut driver, &mapping).await;
+        return wheels_test(&mut driver).await;
     }
     if args.move_test {
-        return move_test(&mut driver, &mapping).await;
+        return move_test(&mut driver).await;
     }
 
     let address = "0.0.0.0:5001".parse()?;
 
     let shared_driver = Arc::new(Mutex::new(driver));
 
-    let hamilton_remote = HamiltonRemoteController::new(Arc::clone(&shared_driver), mapping);
+    let hamilton_remote = HamiltonRemoteController::new(Arc::clone(&shared_driver));
     spawn(async move {
         let mut reading_rate = interval(Duration::from_secs(1));
         loop {
@@ -127,66 +118,57 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn wheels_test(driver: &mut HamiltonLssDriver, mapping: &MotorMapping) -> Result<()> {
+async fn wheels_test(driver: &mut HamiltonLssDriver) -> Result<()> {
+    info!("Left front");
     let command = holonomic_controller::HolonomicWheelCommand::new(1.0, 0.0, 0.0, 0.0);
-    driver
-        .send(mapping.apply_commands_by_mapping(&command))
-        .await?;
+    driver.send(command).await?;
     sleep(Duration::from_secs_f32(2.)).await;
+    info!("Right front");
     let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 1.0, 0.0, 0.0);
-    driver
-        .send(mapping.apply_commands_by_mapping(&command))
-        .await?;
+    driver.send(command).await?;
     sleep(Duration::from_secs_f32(2.)).await;
+    info!("Left rear");
     let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 1.0, 0.0);
-    driver
-        .send(mapping.apply_commands_by_mapping(&command))
-        .await?;
+    driver.send(command).await?;
     sleep(Duration::from_secs_f32(2.)).await;
+    info!("Right rear");
     let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 1.0);
-    driver
-        .send(mapping.apply_commands_by_mapping(&command))
-        .await?;
+    driver.send(command).await?;
     sleep(Duration::from_secs_f32(2.)).await;
+    info!("Stopping");
     let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
-    driver
-        .send(mapping.apply_commands_by_mapping(&command))
-        .await?;
+    driver.send(command).await?;
     sleep(Duration::from_secs_f32(1.)).await;
     return Ok(());
 }
 
-async fn move_test(driver: &mut HamiltonLssDriver, mapping: &MotorMapping) -> Result<()> {
-    let mapped_move_command = mapping.apply_commands_by_mapping(
-        &hamilton::MoveCommand {
-            x: 0.25,
-            y: 0.75,
-            yaw: 0.0,
-        }
-        .into(),
-    );
+async fn move_test(driver: &mut HamiltonLssDriver) -> Result<()> {
     driver
-        .send(mapped_move_command)
+        .send(
+            hamilton::MoveCommand {
+                x: 0.25,
+                y: 0.75,
+                yaw: 0.0,
+            }
+            .into(),
+        )
         .await
         .map_err(|_| Status::internal("Failed to send message over serial port"))?;
     sleep(Duration::from_secs_f32(1.5)).await;
-    let mapped_move_command = mapping.apply_commands_by_mapping(
-        &hamilton::MoveCommand {
-            x: -0.25,
-            y: -0.75,
-            yaw: 0.0,
-        }
-        .into(),
-    );
     driver
-        .send(mapped_move_command)
+        .send(
+            hamilton::MoveCommand {
+                x: -0.25,
+                y: -0.75,
+                yaw: 0.0,
+            }
+            .into(),
+        )
         .await
         .map_err(|_| Status::internal("Failed to send message over serial port"))?;
     sleep(Duration::from_secs_f32(1.5)).await;
     let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
-    driver
-        .send(mapping.apply_commands_by_mapping(&command))
-        .await?;
+    driver.send(command).await?;
     sleep(Duration::from_secs_f32(1.)).await;
     return Ok(());
 }
