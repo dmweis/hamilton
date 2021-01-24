@@ -1,7 +1,7 @@
 {
     "left_front_controller": {
         "id": 11,
-        "inverted": false
+        "inverted": true
     },
     "right_front_controller": {
         "id": 12,
@@ -9,7 +9,7 @@
     },
     "left_rear_controller": {
         "id": 13,
-        "inverted": false
+        "inverted": true
     },
     "right_rear_controller": {
         "id": 14,
