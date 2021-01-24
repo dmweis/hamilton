@@ -1,19 +1,19 @@
 {
     "left_front_controller": {
-        "id": 0,
+        "id": 11,
         "inverted": false
     },
     "right_front_controller": {
-        "id": 0,
+        "id": 12,
         "inverted": false
     },
     "left_rear_controller": {
-        "id": 0,
+        "id": 13,
         "inverted": false
     },
     "right_rear_controller": {
-        "id": 0,
+        "id": 14,
         "inverted": false
     },
-    "multiplier": 0.0
+    "multiplier": 720.0
 }
