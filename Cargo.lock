@@ -439,20 +439,14 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "approx",
- "async-trait",
- "bytes 1.0.1",
  "clap",
  "directories",
- "futures",
  "lss_driver",
- "postcard-cobs",
  "prost",
  "serde",
  "serde_json",
  "thiserror",
  "tokio",
- "tokio-serial",
- "tokio-util",
  "tonic",
  "tonic-build",
  "tracing",
@@ -897,12 +891,6 @@ name = "pin-utils"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
-
-[[package]]
-name = "postcard-cobs"
-version = "0.1.5-pre"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c68cb38ed13fd7bc9dd5db8f165b7c8d9c1a315104083a2b10f11354c2af97f"
 
 [[package]]
 name = "ppv-lite86"

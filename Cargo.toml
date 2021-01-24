@@ -11,14 +11,8 @@ tonic = "0.4"
 tokio = { version = "1.0", features = ["macros", "time", "rt-multi-thread"] }
 prost = "0.7"
 clap = "3.0.0-beta.1"
-tokio-serial = { git = "https://github.com/dmweis/tokio-serial", default-features = false }
-bytes = "1.0"
-async-trait = "0.1"
 thiserror = "1.0"
 anyhow = "1.0"
-futures = "0.3.8"
-postcard-cobs = "0.1.5-pre"
-tokio-util = { version = "0.6", features = ["codec"], default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 directories = "3.0"
