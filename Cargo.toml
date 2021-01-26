@@ -11,6 +11,9 @@ default-run = "hamilton_controller"
 name = "hamilton_controller"
 
 [[bin]]
+name = "hamilton_guppy_controller"
+
+[[bin]]
 name = "vehicle_config_test"
 
 [dependencies]
