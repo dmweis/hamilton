@@ -1137,7 +1137,7 @@ dependencies = [
 [[package]]
 name = "guppy"
 version = "0.1.0"
-source = "git+https://github.com/dmweis/guppy?branch=main#d1f30c023c23709bf1f1dec59f4de272742b8f7d"
+source = "git+https://github.com/dmweis/guppy?branch=main#2e9ba322fc8b181fb48ae7a1476f8965441ae868"
 dependencies = [
  "anyhow",
  "async-std",

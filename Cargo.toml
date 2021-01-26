@@ -6,6 +6,12 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "hamilton_controller"
+
+[[bin]]
+name = "vehicle_config_test"
+
 [dependencies]
 tonic = "0.4"
 tokio = { version = "1.0", features = ["macros", "time", "rt-multi-thread"] }

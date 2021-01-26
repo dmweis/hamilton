@@ -5,30 +5,31 @@ use anyhow::Result;
 use directories::ProjectDirs;
 use lss_driver::{LSSDriver, LedColor};
 use serde::{Deserialize, Serialize};
-use std::fs::create_dir_all;
-use std::path::Path;
-use std::str;
+use std::{fs::create_dir_all, path::Path, str, sync::Arc};
+use tokio::sync::Mutex;
 
 pub struct HamiltonLssDriver {
-    driver: LSSDriver,
+    driver: Arc<Mutex<LSSDriver>>,
     config: BodyConfig,
 }
 
 impl HamiltonLssDriver {
-    pub async fn new(port: &str, config: BodyConfig) -> Result<Self> {
-        let mut driver = LSSDriver::new(port)?;
+    pub async fn new(driver: Arc<Mutex<LSSDriver>>, config: BodyConfig) -> Result<Self> {
+        let mut driver_lock = driver.lock().await;
         for id in config.get_ids().iter() {
-            driver
+            driver_lock
                 .set_maximum_speed(*id, config.multiplier.abs())
                 .await?;
         }
+        drop(driver_lock);
         Ok(Self { driver, config })
     }
 
     pub async fn send(&mut self, command: HolonomicWheelCommand) -> Result<()> {
         let command = self.config.apply_commands_by_mapping(&command);
+        let mut driver = self.driver.lock().await;
         for motor_command in command.motors() {
-            self.driver
+            driver
                 .set_rotation_speed(motor_command.id(), motor_command.speed())
                 .await?;
         }
@@ -37,15 +38,17 @@ impl HamiltonLssDriver {
 
     pub async fn read_voltage(&mut self) -> Result<f32> {
         let mut voltages = Vec::with_capacity(4);
+        let mut driver = self.driver.lock().await;
         for id in self.config.get_ids().iter() {
-            voltages.push(self.driver.query_voltage(*id).await?);
+            voltages.push(driver.query_voltage(*id).await?);
         }
         Ok(voltages.iter().sum::<f32>() / voltages.len() as f32)
     }
 
     pub async fn set_color(&mut self, color: LedColor) -> Result<()> {
+        let mut driver = self.driver.lock().await;
         for id in self.config.get_ids().iter() {
-            self.driver.set_color(*id, color).await?;
+            driver.set_color(*id, color).await?;
         }
         Ok(())
     }

@@ -1,3 +1,3 @@
 fn main() {
-    tonic_build::compile_protos("proto/hamilton/hamilton.proto").unwrap();
+    tonic_build::compile_protos("proto/hamilton/hamilton_service.proto").unwrap();
 }
