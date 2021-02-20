@@ -11,8 +11,10 @@ use hamilton::{
     driver::{BodyConfig, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
 };
+#[allow(unused_imports)]
 use hamilton_service::hamilton_remote_server::{HamiltonRemote, HamiltonRemoteServer};
 use lss_driver::LSSDriver;
+use remote_controller::start_remote_controller_server;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
@@ -50,6 +52,7 @@ impl HamiltonRemote for HamiltonRemoteController {
 }
 
 impl HamiltonRemoteController {
+    #[allow(dead_code)]
     fn new(driver: Arc<Mutex<HamiltonLssDriver>>) -> Self {
         HamiltonRemoteController { driver }
     }
@@ -94,7 +97,19 @@ async fn main() -> Result<()> {
 
     let shared_driver = Arc::new(Mutex::new(hamilton_driver));
 
-    let hamilton_remote = HamiltonRemoteController::new(Arc::clone(&shared_driver));
+    let cloned_driver = Arc::clone(&shared_driver);
+    let controller_state = start_remote_controller_server(([0, 0, 0, 0], 8080));
+    spawn(async move {
+        let mut reading_rate = interval(Duration::from_millis(50));
+        loop {
+            reading_rate.tick().await;
+            let state = controller_state.lock().unwrap().get_latest();
+            let move_command =
+                HolonomicWheelCommand::from_move(state.left_x, state.left_y, state.left_y);
+            cloned_driver.lock().await.send(move_command).await.unwrap();
+        }
+    });
+
     let config_handler = GuppyConfigHandler::new(Arc::clone(&guppy_controller));
     let controller_handler = GuppyControllerHandler::new(guppy_controller);
     spawn(async move {
@@ -120,7 +135,6 @@ async fn main() -> Result<()> {
     info!("Hamilton remote started at {}", address);
 
     Server::builder()
-        .add_service(HamiltonRemoteServer::new(hamilton_remote))
         .add_service(GuppyConfigureServer::new(config_handler))
         .add_service(GuppyControllerServer::new(controller_handler))
         .serve(address)

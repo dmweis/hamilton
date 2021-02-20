@@ -30,6 +30,7 @@ lss_driver = { git = "https://github.com/dmweis/lss_driver", branch = "tokio-1.0
 guppy = { git = "https://github.com/dmweis/guppy", branch = "main" }
 tracing = "0.1"
 tracing-subscriber = "0.2"
+remote-controller = { git = "https://github.com/dmweis/remote-controller", branch = "main" }
 
 [build-dependencies]
 tonic-build = { version = "0.4", features = ["prost"] }
