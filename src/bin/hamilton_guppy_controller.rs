@@ -105,7 +105,7 @@ async fn main() -> Result<()> {
             reading_rate.tick().await;
             let state = controller_state.lock().unwrap().get_latest();
             let move_command =
-                HolonomicWheelCommand::from_move(state.left_x, state.left_y, state.left_y);
+                HolonomicWheelCommand::from_move(state.left_x, state.left_y, state.right_y);
             cloned_driver.lock().await.send(move_command).await.unwrap();
         }
     });
