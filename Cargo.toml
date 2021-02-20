@@ -3,8 +3,18 @@ name = "hamilton"
 version = "0.1.0"
 authors = ["David Weis <dweis7@gmail.com>"]
 edition = "2018"
+default-run = "hamilton_controller"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "hamilton_controller"
+
+[[bin]]
+name = "hamilton_guppy_controller"
+
+[[bin]]
+name = "vehicle_config_test"
 
 [dependencies]
 tonic = "0.4"
@@ -17,6 +27,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 directories = "3.0"
 lss_driver = { git = "https://github.com/dmweis/lss_driver", branch = "tokio-1.0" }
+guppy = { git = "https://github.com/dmweis/guppy", branch = "main" }
 tracing = "0.1"
 tracing-subscriber = "0.2"
 

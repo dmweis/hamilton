@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package hamilton;
+package hamilton_service;
 
 message MoveCommand {
     float x = 1;

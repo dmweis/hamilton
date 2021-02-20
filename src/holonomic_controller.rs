@@ -1,5 +1,3 @@
-use crate::hamilton::MoveCommand;
-
 pub struct HolonomicWheelCommand {
     left_front: f32,
     right_front: f32,
@@ -33,19 +31,5 @@ impl HolonomicWheelCommand {
     }
     pub fn right_rear(&self) -> f32 {
         self.right_rear
-    }
-}
-
-impl From<MoveCommand> for HolonomicWheelCommand {
-    fn from(move_command: MoveCommand) -> Self {
-        let forward = move_command.x;
-        let strafe = move_command.y;
-        let rotation = move_command.yaw;
-        HolonomicWheelCommand::new(
-            forward - rotation - strafe,
-            forward + rotation + strafe,
-            forward - rotation + strafe,
-            forward + rotation - strafe,
-        )
     }
 }
