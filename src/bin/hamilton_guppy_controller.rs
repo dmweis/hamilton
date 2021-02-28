@@ -1,9 +1,9 @@
 use anyhow::Result;
 use clap::Clap;
-use guppy::arm_config::ArmConfig;
-use guppy::arm_controller::LssArmController;
-use guppy::arm_driver::SharedSerialArmDriver;
-use guppy::grpc_controller::{
+use guppy_grpc::arm_config::ArmConfig;
+use guppy_grpc::arm_controller::LssArmController;
+use guppy_grpc::arm_driver::SharedSerialArmDriver;
+use guppy_grpc::grpc_controller::{
     ControllerWrapper, GuppyConfigHandler, GuppyConfigureServer, GuppyControllerHandler,
     GuppyControllerServer,
 };
