@@ -1,12 +1,12 @@
 use anyhow::Result;
 use clap::Clap;
-use guppy_grpc::arm_config::ArmConfig;
 use guppy_grpc::arm_controller::LssArmController;
 use guppy_grpc::arm_driver::SharedSerialArmDriver;
 use guppy_grpc::grpc_controller::{
     ControllerWrapper, GuppyConfigHandler, GuppyConfigureServer, GuppyControllerHandler,
     GuppyControllerServer,
 };
+use guppy_grpc::{arm_config::ArmConfig, arm_driver::ArmControlSettings};
 use hamilton::{
     driver::{BodyConfig, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
@@ -60,7 +60,12 @@ impl HamiltonRemoteController {
 
 async fn connect_guppy(driver: Arc<Mutex<LSSDriver>>) -> Result<ControllerWrapper> {
     let config = ArmConfig::included();
-    let driver = SharedSerialArmDriver::new(driver, config.clone()).await?;
+    let driver = SharedSerialArmDriver::new(
+        driver,
+        config.clone(),
+        ArmControlSettings::included_continuous(),
+    )
+    .await?;
     let controller = LssArmController::new(driver, config);
     Ok(Arc::new(Mutex::new(controller)))
 }
