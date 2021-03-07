@@ -98,11 +98,11 @@ async fn main() -> Result<()> {
             let translation = position - desired_position;
             let gain_vector = na::Rotation2::new(-yaw) * translation;
 
-            let mut forward_gain = (gain_vector.x * 10.0).clamp(-0.5, 0.5);
+            let mut forward_gain = -(gain_vector.x * 10.0).clamp(-0.5, 0.5);
             if forward_gain.abs() < 0.1 {
                 forward_gain = 0.0;
             }
-            let mut strafe_gain = (gain_vector.y * 10.0).clamp(-0.5, 0.5);
+            let mut strafe_gain = -(gain_vector.y * 10.0).clamp(-0.5, 0.5);
             if strafe_gain.abs() < 0.1 {
                 strafe_gain = 0.0;
             }
