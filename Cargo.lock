@@ -1164,7 +1164,7 @@ dependencies = [
  "async-std",
  "async-trait",
  "lss_driver",
- "nalgebra",
+ "nalgebra 0.24.1",
  "parry3d",
  "serde",
  "serde_json",
@@ -1183,7 +1183,7 @@ dependencies = [
  "ctrlc",
  "guppy-controller",
  "guppy-ui",
- "nalgebra",
+ "nalgebra 0.24.1",
  "prost",
  "tokio",
  "tonic",
@@ -1201,7 +1201,7 @@ dependencies = [
  "ctrlc",
  "guppy-controller",
  "kiss3d",
- "nalgebra",
+ "nalgebra 0.24.1",
  "tokio",
 ]
 
@@ -1234,10 +1234,12 @@ dependencies = [
  "directories",
  "guppy-grpc",
  "lss_driver",
+ "nalgebra 0.25.2",
  "prost",
  "remote-controller",
  "serde",
  "serde_json",
+ "socket2",
  "thiserror",
  "tokio",
  "tonic",
@@ -1496,7 +1498,7 @@ dependencies = [
  "image",
  "instant",
  "libc",
- "nalgebra",
+ "nalgebra 0.24.1",
  "ncollide3d",
  "num-traits",
  "rusttype 0.8.3",
@@ -1645,6 +1647,15 @@ name = "matrixmultiply"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "916806ba0031cd542105d916a97c8572e1fa6dd79c9c51e7eb43a09ec2dd84c1"
+dependencies = [
+ "rawpointer",
+]
+
+[[package]]
+name = "matrixmultiply"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1300bdbea33ec2836b01ff1f5a6eed8bad66d0c31f94d9b7993407a8b054c3a1"
 dependencies = [
  "rawpointer",
 ]
@@ -1846,14 +1857,31 @@ checksum = "1a9002895a0de45e3cde58b36d0cf2f83249e7dba4a43ee64dafbf01bfd464ff"
 dependencies = [
  "approx 0.4.0",
  "generic-array",
- "matrixmultiply",
+ "matrixmultiply 0.2.4",
  "num-complex",
  "num-rational",
  "num-traits",
  "rand 0.7.3",
  "rand_distr",
  "serde",
- "simba",
+ "simba 0.3.1",
+ "typenum",
+]
+
+[[package]]
+name = "nalgebra"
+version = "0.25.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f413299f376cd2f0eb4f82798d656e18696e5b7f296567bf55478868bb723b3e"
+dependencies = [
+ "approx 0.4.0",
+ "generic-array",
+ "matrixmultiply 0.3.0",
+ "num-complex",
+ "num-rational",
+ "num-traits",
+ "serde",
+ "simba 0.4.0",
  "typenum",
 ]
 
@@ -1877,10 +1905,10 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "either",
- "nalgebra",
+ "nalgebra 0.24.1",
  "num-traits",
  "petgraph",
- "simba",
+ "simba 0.3.1",
  "slab",
  "slotmap",
  "smallvec",
@@ -2201,11 +2229,11 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "either",
- "nalgebra",
+ "nalgebra 0.24.1",
  "num-derive",
  "num-traits",
  "rustc-hash",
- "simba",
+ "simba 0.3.1",
  "slab",
  "smallvec",
 ]
@@ -2820,6 +2848,18 @@ name = "simba"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "17bfe642b1728a6e89137ad428ef5d4738eca4efaba9590f9e110b8944028621"
+dependencies = [
+ "approx 0.4.0",
+ "num-complex",
+ "num-traits",
+ "paste",
+]
+
+[[package]]
+name = "simba"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5132a955559188f3d13c9ba831e77c802ddc8782783f050ed0c52f5988b95f4c"
 dependencies = [
  "approx 0.4.0",
  "num-complex",
