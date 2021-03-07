@@ -81,7 +81,7 @@ async fn main() -> Result<()> {
     let mut localization_rx =
         hamilton::localiser::create_localization_subscriber(args.address).await?;
     while let Some(message) = localization_rx.recv().await {
-        if running.load(Ordering::Acquire) {
+        if !running.load(Ordering::Acquire) {
             break;
         }
         if let Some((_position, yaw)) = message.get_tracker_pose() {
