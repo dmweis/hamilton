@@ -114,9 +114,9 @@ async fn main() -> Result<()> {
             }
 
             let move_command = if state.right_x < -0.5 {
-                HolonomicWheelCommand::from_move(forward_gain, strafe_gain, 0.0);
+                HolonomicWheelCommand::from_move(forward_gain, strafe_gain, 0.0)
             } else {
-                HolonomicWheelCommand::from_move(0.0, 0.0, 0.0);
+                HolonomicWheelCommand::from_move(0.0, 0.0, 0.0)
             };
             cloned_driver.lock().await.send(move_command).await?;
         } else {
