@@ -4,6 +4,7 @@ use hamilton::{
     driver::{BodyConfig, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
 };
+use nalgebra as na;
 use remote_controller::start_remote_controller_server;
 use std::net::SocketAddrV4;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -80,21 +81,43 @@ async fn main() -> Result<()> {
 
     let mut localization_rx =
         hamilton::localiser::create_localization_subscriber(args.address).await?;
+
+    let mut desired_position = na::Point2::new(0.0, 0.0);
+
     while let Some(message) = localization_rx.recv().await {
         if !running.load(Ordering::Acquire) {
             break;
         }
-        if let Some((_position, yaw)) = message.get_tracker_pose() {
+        if let Some((position, yaw)) = message.get_tracker_pose() {
             let state = controller_state.lock().unwrap().get_latest();
+            if state.right_x > 0.5 {
+                info!("Updated desired point to {:?}", position);
+                desired_position = position;
+            }
             let command_yaw = state.left_y.atan2(state.left_x);
+            let translation = position - desired_position;
+            let gain_vector = na::Rotation2::new(-yaw) * translation;
 
-            let limit = 0.5;
-            let mut drive = (yaw - command_yaw).clamp(-limit, limit);
-            if drive.abs() < 0.1 {
-                drive = 0.0;
+            let mut forward_gain = (gain_vector.x * 10.0).clamp(-0.5, 0.5);
+            if forward_gain.abs() < 0.1 {
+                forward_gain = 0.0;
+            }
+            let mut strafe_gain = (gain_vector.y * 10.0).clamp(-0.5, 0.5);
+            if strafe_gain.abs() < 0.1 {
+                strafe_gain = 0.0;
             }
 
-            let move_command = HolonomicWheelCommand::from_move(0.0, 0.0, -drive);
+            let limit = 0.5;
+            let mut yaw_gain = -(yaw - command_yaw).clamp(-limit, limit);
+            if yaw_gain.abs() < 0.1 {
+                yaw_gain = 0.0;
+            }
+
+            let move_command = if state.right_x < -0.5 {
+                HolonomicWheelCommand::from_move(forward_gain, strafe_gain, 0.0);
+            } else {
+                HolonomicWheelCommand::from_move(0.0, 0.0, 0.0);
+            };
             cloned_driver.lock().await.send(move_command).await?;
         } else {
             let move_command = HolonomicWheelCommand::from_move(0.0, 0.0, 0.0);

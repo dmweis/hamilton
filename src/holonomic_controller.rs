@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct HolonomicWheelCommand {
     left_front: f32,
     right_front: f32,
