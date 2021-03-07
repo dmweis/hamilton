@@ -78,7 +78,7 @@ async fn main() -> Result<()> {
 
             let drive = (yaw - command_yaw).clamp(-1.0, 1.0);
 
-            let move_command = HolonomicWheelCommand::from_move(0.0, 0.0, drive);
+            let move_command = HolonomicWheelCommand::from_move(0.0, 0.0, -drive);
             cloned_driver.lock().await.send(move_command).await.unwrap();
         } else {
             error!("No tracker pose");
