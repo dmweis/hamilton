@@ -739,6 +739,7 @@ dependencies = [
  "anyhow",
  "approx",
  "clap",
+ "ctrlc",
  "directories",
  "guppy-grpc",
  "lss_driver",

@@ -6,10 +6,11 @@ use hamilton::{
 };
 use remote_controller::start_remote_controller_server;
 use std::net::SocketAddrV4;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
-use tokio::time::interval;
+use tokio::time::{interval, sleep};
 use tokio::{self, spawn};
 use tracing::*;
 use tracing_subscriber::filter::LevelFilter;
@@ -69,9 +70,20 @@ async fn main() -> Result<()> {
         }
     });
 
+    let running = Arc::new(AtomicBool::new(true));
+    let running_handle = running.clone();
+
+    ctrlc::set_handler(move || {
+        running_handle.store(false, Ordering::Release);
+        println!("Caught interrupt\nExiting...");
+    })?;
+
     let mut localization_rx =
         hamilton::localiser::create_localization_subscriber(args.address).await?;
     while let Some(message) = localization_rx.recv().await {
+        if running.load(Ordering::Acquire) {
+            break;
+        }
         if let Some((_position, yaw)) = message.get_tracker_pose() {
             let state = controller_state.lock().unwrap().get_latest();
             let command_yaw = state.left_y.atan2(state.left_x);
@@ -79,11 +91,15 @@ async fn main() -> Result<()> {
             let drive = (yaw - command_yaw).clamp(-1.0, 1.0);
 
             let move_command = HolonomicWheelCommand::from_move(0.0, 0.0, -drive);
-            cloned_driver.lock().await.send(move_command).await.unwrap();
+            cloned_driver.lock().await.send(move_command).await?;
         } else {
+            let move_command = HolonomicWheelCommand::from_move(0.0, 0.0, 0.0);
+            cloned_driver.lock().await.send(move_command).await?;
             error!("No tracker pose");
         }
     }
-
+    let move_command = HolonomicWheelCommand::from_move(0.0, 0.0, 0.0);
+    cloned_driver.lock().await.send(move_command).await?;
+    sleep(Duration::from_secs(1)).await;
     Ok(())
 }
