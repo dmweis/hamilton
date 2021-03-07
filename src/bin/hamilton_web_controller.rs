@@ -88,7 +88,11 @@ async fn main() -> Result<()> {
             let state = controller_state.lock().unwrap().get_latest();
             let command_yaw = state.left_y.atan2(state.left_x);
 
-            let drive = (yaw - command_yaw).clamp(-1.0, 1.0);
+            let limit = 0.5;
+            let mut drive = (yaw - command_yaw).clamp(-limit, limit);
+            if drive.abs() < 0.1 {
+                drive = 0.0;
+            }
 
             let move_command = HolonomicWheelCommand::from_move(0.0, 0.0, -drive);
             cloned_driver.lock().await.send(move_command).await?;
