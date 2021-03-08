@@ -84,6 +84,7 @@ async fn main() -> Result<()> {
         hamilton::localiser::create_localization_subscriber(args.address).await?;
 
     let mut desired_position = None;
+    let mut command_yaw = 0.0;
 
     while let Some(message) = localization_rx.recv().await {
         if !running.load(Ordering::Acquire) {
@@ -94,14 +95,13 @@ async fn main() -> Result<()> {
             if desired_position.is_none() {
                 desired_position = Some(position)
             }
-            let state = controller_state.get_last_gamepad_command();
 
             if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
-                let target = from_canvas_to_position(canvas_touch);
+                let (target, heading) = from_canvas_to_position_heading(canvas_touch);
+                command_yaw = heading;
                 desired_position = Some(target);
             }
 
-            let command_yaw = state.left_y.atan2(state.left_x);
             let translation = position - desired_position.unwrap();
             let gain_vector = na::Rotation2::new(-yaw) * translation;
 
@@ -135,12 +135,15 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn from_canvas_to_position(touch_event: CanvasTouch) -> na::Point2<f32> {
+fn from_canvas_to_position_heading(touch_event: CanvasTouch) -> (na::Point2<f32>, f32) {
     let front = na::Point2::new(0.42_f32, 0.15_f32);
     let rear = na::Point2::new(-0.75_f32, -1.24_f32);
     let y = linear_map(touch_event.down_x, 0.0, touch_event.width, front.y, rear.y);
     let x = linear_map(touch_event.down_y, 0.0, touch_event.height, front.x, rear.x);
-    na::Point2::new(x, y)
+    let relative_x = touch_event.down_x - touch_event.up_x;
+    let relative_y = touch_event.down_y - touch_event.up_y;
+    let heading = relative_x.atan2(relative_y);
+    (na::Point2::new(x, y), heading)
 }
 
 fn linear_map(value: f32, in_min: f32, in_max: f32, out_min: f32, out_max: f32) -> f32 {
