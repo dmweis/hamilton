@@ -34,10 +34,12 @@ impl TrackedObjects {
 pub fn tracker_pose_to_plane(
     pose: (na::Point3<f32>, na::UnitQuaternion<f32>),
 ) -> (na::Point2<f32>, f32) {
-    let (position, rotation) = pose;
+    let (position_openvr_space, rotation) = pose;
     let projection = rotation * na::Vector3::y_axis();
     let yaw = -projection.x.atan2(-projection.z);
-    (position.zx(), yaw)
+    let position = position_openvr_space.zx();
+    let position_centered = position + na::Vector2::new(0.14, 0.0);
+    (position_centered, yaw)
 }
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Deserialize)]
