@@ -49,7 +49,7 @@ async fn main() -> Result<()> {
     let shared_driver = Arc::new(Mutex::new(hamilton_driver));
 
     let cloned_driver = Arc::clone(&shared_driver);
-    let (area_width, area_height) = get_hardcoded_map_size();
+    let (area_height, area_width) = get_hardcoded_map_size();
     let controller_state = start_remote_controller_server_with_map(
         ([0, 0, 0, 0], 8080),
         AreaSize::new(area_width, area_height),
