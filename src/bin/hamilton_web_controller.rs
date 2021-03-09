@@ -6,9 +6,7 @@ use hamilton::{
 };
 use nalgebra as na;
 use remote_controller::CanvasTouch;
-use remote_controller::{
-    start_remote_controller_server, start_remote_controller_server_with_map, AreaSize,
-};
+use remote_controller::{start_remote_controller_server_with_map, AreaSize};
 use std::net::SocketAddrV4;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
