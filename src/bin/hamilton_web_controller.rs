@@ -5,8 +5,10 @@ use hamilton::{
     holonomic_controller::HolonomicWheelCommand,
 };
 use nalgebra as na;
-use remote_controller::start_remote_controller_server;
 use remote_controller::CanvasTouch;
+use remote_controller::{
+    start_remote_controller_server, start_remote_controller_server_with_map, AreaSize,
+};
 use std::net::SocketAddrV4;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -49,7 +51,11 @@ async fn main() -> Result<()> {
     let shared_driver = Arc::new(Mutex::new(hamilton_driver));
 
     let cloned_driver = Arc::clone(&shared_driver);
-    let controller_state = start_remote_controller_server(([0, 0, 0, 0], 8080));
+    let (area_width, area_height) = get_hardcoded_map_size();
+    let controller_state = start_remote_controller_server_with_map(
+        ([0, 0, 0, 0], 8080),
+        AreaSize::new(area_width, area_height),
+    );
 
     spawn(async move {
         let mut reading_rate = interval(Duration::from_secs(1));
@@ -133,6 +139,12 @@ async fn main() -> Result<()> {
     cloned_driver.lock().await.send(move_command).await?;
     sleep(Duration::from_secs(1)).await;
     Ok(())
+}
+
+fn get_hardcoded_map_size() -> (f32, f32) {
+    let front = na::Point2::new(0.42_f32, 0.15_f32);
+    let rear = na::Point2::new(-0.75_f32, -1.24_f32);
+    ((front.x - rear.x).abs(), (front.y - rear.y).abs())
 }
 
 fn from_canvas_to_position_heading(touch_event: CanvasTouch) -> (na::Point2<f32>, f32) {
