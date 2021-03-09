@@ -19,7 +19,10 @@ impl Map {
         )
     }
 
-    pub fn canvas_touch_to_pose(&self, touch_event: CanvasTouch) -> (na::Point2<f32>, f32) {
+    pub fn canvas_touch_to_pose(
+        &self,
+        touch_event: CanvasTouch,
+    ) -> (na::Point2<f32>, na::Rotation2<f32>) {
         let y = linear_map(
             touch_event.down_x,
             0.0,
@@ -37,7 +40,7 @@ impl Map {
         let relative_x = touch_event.down_x - touch_event.up_x;
         let relative_y = touch_event.down_y - touch_event.up_y;
         let heading = relative_x.atan2(relative_y);
-        (na::Point2::new(x, y), heading)
+        (na::Point2::new(x, y), na::Rotation2::new(heading))
     }
 
     pub fn save_json(&self, path: &str) -> Result<()> {

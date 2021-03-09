@@ -21,7 +21,7 @@ async fn main() -> Result<()> {
                 "x: {:.2} y {:.2} yaw {:.2}",
                 position.x,
                 position.y,
-                yaw.to_degrees()
+                yaw.angle().to_degrees()
             );
         } else {
             println!("Device not visible");

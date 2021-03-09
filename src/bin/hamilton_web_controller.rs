@@ -4,8 +4,8 @@ use hamilton::{
     driver::{BodyConfig, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
     map::Map,
+    navigation::{NavigationController, Pose},
 };
-use nalgebra as na;
 use remote_controller::{start_remote_controller_server_with_map, AreaSize};
 use std::net::SocketAddrV4;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -45,6 +45,7 @@ async fn main() -> Result<()> {
     };
 
     let map = Map::included_room();
+    let mut navigation_controller = NavigationController::default();
 
     let lss_driver = Arc::new(Mutex::new(lss_driver::LSSDriver::new(&args.port)?));
     let hamilton_driver = HamiltonLssDriver::new(lss_driver, body_config).await?;
@@ -89,53 +90,35 @@ async fn main() -> Result<()> {
     let mut localization_rx =
         hamilton::localiser::create_localization_subscriber(args.address).await?;
 
-    let mut desired_position = None;
-    let mut command_yaw = 0.0;
-
     while let Some(message) = localization_rx.recv().await {
         if !running.load(Ordering::Acquire) {
             break;
         }
         if let Some((position, yaw)) = message.get_tracker_pose() {
             // set start position
-            if desired_position.is_none() {
-                desired_position = Some(position)
-            }
+            navigation_controller.update_current_pose(Pose::from_na(position, yaw));
 
             if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
                 let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
-                command_yaw = heading;
-                desired_position = Some(target);
+                navigation_controller.update_target_pose(Pose::from_na(target, heading));
             }
 
-            let translation = position - desired_position.unwrap();
-            let gain_vector = na::Rotation2::new(-yaw) * translation;
-
-            let mut forward_gain = -(gain_vector.x * 10.0).clamp(-0.5, 0.5);
-            if forward_gain.abs() < 0.1 {
-                forward_gain = 0.0;
+            if let Some(move_command) = navigation_controller.calculate_drive() {
+                cloned_driver.lock().await.send(move_command).await?;
+            } else {
+                cloned_driver
+                    .lock()
+                    .await
+                    .send(HolonomicWheelCommand::stopped())
+                    .await?;
             }
-            let mut strafe_gain = -(gain_vector.y * 10.0).clamp(-0.5, 0.5);
-            if strafe_gain.abs() < 0.1 {
-                strafe_gain = 0.0;
-            }
-
-            let limit = 0.5;
-            let mut yaw_gain = -(yaw - command_yaw).clamp(-limit, limit);
-            if yaw_gain.abs() < 0.1 {
-                yaw_gain = 0.0;
-            }
-
-            let move_command =
-                HolonomicWheelCommand::from_move(forward_gain, strafe_gain, yaw_gain);
-            cloned_driver.lock().await.send(move_command).await?;
         } else {
-            let move_command = HolonomicWheelCommand::from_move(0.0, 0.0, 0.0);
+            let move_command = HolonomicWheelCommand::stopped();
             cloned_driver.lock().await.send(move_command).await?;
             error!("No tracker pose");
         }
     }
-    let move_command = HolonomicWheelCommand::from_move(0.0, 0.0, 0.0);
+    let move_command = HolonomicWheelCommand::stopped();
     cloned_driver.lock().await.send(move_command).await?;
     sleep(Duration::from_secs(1)).await;
     Ok(())

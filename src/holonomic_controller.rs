@@ -21,6 +21,15 @@ impl HolonomicWheelCommand {
         }
     }
 
+    pub fn stopped() -> Self {
+        Self {
+            left_front: 0.0,
+            right_front: 0.0,
+            left_rear: 0.0,
+            right_rear: 0.0,
+        }
+    }
+
     pub fn from_move(forward: f32, strafe: f32, yaw: f32) -> HolonomicWheelCommand {
         HolonomicWheelCommand::new(
             forward - yaw - strafe,
