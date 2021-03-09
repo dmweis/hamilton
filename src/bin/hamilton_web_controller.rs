@@ -3,9 +3,9 @@ use clap::Clap;
 use hamilton::{
     driver::{BodyConfig, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
+    map::Map,
 };
 use nalgebra as na;
-use remote_controller::CanvasTouch;
 use remote_controller::{start_remote_controller_server_with_map, AreaSize};
 use std::net::SocketAddrV4;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -44,12 +44,14 @@ async fn main() -> Result<()> {
         BodyConfig::load_from_default()?
     };
 
+    let map = Map::included_room();
+
     let lss_driver = Arc::new(Mutex::new(lss_driver::LSSDriver::new(&args.port)?));
     let hamilton_driver = HamiltonLssDriver::new(lss_driver, body_config).await?;
     let shared_driver = Arc::new(Mutex::new(hamilton_driver));
 
     let cloned_driver = Arc::clone(&shared_driver);
-    let (area_height, area_width) = get_hardcoded_map_size();
+    let (area_height, area_width) = map.get_size();
     let controller_state = start_remote_controller_server_with_map(
         ([0, 0, 0, 0], 8080),
         AreaSize::new(area_width, area_height),
@@ -101,7 +103,7 @@ async fn main() -> Result<()> {
             }
 
             if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
-                let (target, heading) = from_canvas_to_position_heading(canvas_touch);
+                let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
                 command_yaw = heading;
                 desired_position = Some(target);
             }
@@ -137,25 +139,4 @@ async fn main() -> Result<()> {
     cloned_driver.lock().await.send(move_command).await?;
     sleep(Duration::from_secs(1)).await;
     Ok(())
-}
-
-fn get_hardcoded_map_size() -> (f32, f32) {
-    let front = na::Point2::new(0.42_f32, 0.15_f32);
-    let rear = na::Point2::new(-0.75_f32, -1.24_f32);
-    ((front.x - rear.x).abs(), (front.y - rear.y).abs())
-}
-
-fn from_canvas_to_position_heading(touch_event: CanvasTouch) -> (na::Point2<f32>, f32) {
-    let front = na::Point2::new(0.42_f32, 0.15_f32);
-    let rear = na::Point2::new(-0.75_f32, -1.24_f32);
-    let y = linear_map(touch_event.down_x, 0.0, touch_event.width, front.y, rear.y);
-    let x = linear_map(touch_event.down_y, 0.0, touch_event.height, front.x, rear.x);
-    let relative_x = touch_event.down_x - touch_event.up_x;
-    let relative_y = touch_event.down_y - touch_event.up_y;
-    let heading = relative_x.atan2(relative_y);
-    (na::Point2::new(x, y), heading)
-}
-
-fn linear_map(value: f32, in_min: f32, in_max: f32, out_min: f32, out_max: f32) -> f32 {
-    (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 }
