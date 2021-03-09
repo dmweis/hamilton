@@ -38,7 +38,7 @@ pub fn tracker_pose_to_plane(
     let projection = rotation * na::Vector3::y_axis();
     let yaw = -projection.x.atan2(-projection.z);
     let position = position_openvr_space.zx();
-    let position_centered = position + na::Vector2::new(0.14, 0.0);
+    let position_centered = position + na::Rotation2::new(yaw) * na::Vector2::new(0.14, 0.0);
     (position_centered, yaw)
 }
 
