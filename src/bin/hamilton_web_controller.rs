@@ -7,13 +7,19 @@ use hamilton::{
     navigation::{NavigationController, Pose},
 };
 use remote_controller::{start_remote_controller_server_with_map, AreaSize};
-use std::net::SocketAddrV4;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use std::time::Duration;
-use tokio::sync::Mutex;
-use tokio::time::{interval, sleep};
-use tokio::{self, spawn};
+use std::{
+    net::SocketAddrV4,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    time::Duration,
+};
+use tokio::{
+    self, spawn,
+    sync::Mutex,
+    time::{interval, sleep, timeout},
+};
 use tracing::*;
 use tracing_subscriber::filter::LevelFilter;
 
@@ -90,34 +96,52 @@ async fn main() -> Result<()> {
     let mut localization_rx =
         hamilton::localiser::create_localization_subscriber(args.address).await?;
 
-    while let Some(message) = localization_rx.recv().await {
+    // this loop is getting super convoluted
+    // refactor
+    // pattern match here would decrease the indentation
+    // but I don't think it would make this cleaner
+    // this is complicated logic so it looks dense
+    // refactor to structure
+    loop {
         if !running.load(Ordering::Acquire) {
             break;
         }
-        if let Some((position, yaw)) = message.get_tracker_pose() {
-            // set start position
-            navigation_controller.update_current_pose(Pose::from_na(position, yaw));
+        if let Ok(message) = timeout(Duration::from_millis(500), localization_rx.recv()).await {
+            if let Some(message) = message {
+                if let Some((position, yaw)) = message.get_tracker_pose() {
+                    // set start position
+                    navigation_controller.update_current_pose(Pose::from_na(position, yaw));
 
-            if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
-                let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
-                navigation_controller.update_target_pose(Pose::from_na(target, heading));
-            }
+                    if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
+                        let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
+                        navigation_controller.update_target_pose(Pose::from_na(target, heading));
+                    }
 
-            if let Some(move_command) = navigation_controller.calculate_drive() {
-                cloned_driver.lock().await.send(move_command).await?;
+                    if let Some(move_command) = navigation_controller.calculate_drive() {
+                        cloned_driver.lock().await.send(move_command).await?;
+                    } else {
+                        cloned_driver
+                            .lock()
+                            .await
+                            .send(HolonomicWheelCommand::stopped())
+                            .await?;
+                    }
+                } else {
+                    let move_command = HolonomicWheelCommand::stopped();
+                    cloned_driver.lock().await.send(move_command).await?;
+                    error!("No tracker pose found");
+                }
             } else {
-                cloned_driver
-                    .lock()
-                    .await
-                    .send(HolonomicWheelCommand::stopped())
-                    .await?;
+                error!("UDP channel closed");
+                break;
             }
         } else {
             let move_command = HolonomicWheelCommand::stopped();
             cloned_driver.lock().await.send(move_command).await?;
-            error!("No tracker pose");
+            error!("No udp messages");
         }
     }
+
     let move_command = HolonomicWheelCommand::stopped();
     cloned_driver.lock().await.send(move_command).await?;
     sleep(Duration::from_secs(1)).await;
