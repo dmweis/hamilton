@@ -54,6 +54,26 @@ impl TrackedObjects {
             None => None,
         }
     }
+
+    pub fn get_any_controller_trigger(&self) -> Option<f32> {
+        for object in &self.trackers {
+            match object.class {
+                VrDeviceClass::LeftController
+                | VrDeviceClass::RightController
+                | VrDeviceClass::Controller => {
+                    if object.seen && object.tracked {
+                        if let Some(inputs) = &object.inputs {
+                            if let Some(trigger) = &inputs.trigger {
+                                return Some(*trigger);
+                            }
+                        }
+                    }
+                }
+                _ => (),
+            }
+        }
+        None
+    }
 }
 
 pub fn tracker_pose_to_plane(
@@ -86,6 +106,12 @@ pub struct VrDevice {
     pub position: na::Point3<f32>,
     pub rotation: na::UnitQuaternion<f32>,
     pub class: VrDeviceClass,
+    pub inputs: Option<InputsState>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct InputsState {
+    pub trigger: Option<f32>,
 }
 
 fn bind_multicast(addr: &SocketAddrV4, multi_addr: &SocketAddrV4) -> Result<StdUdpSocket> {

@@ -114,13 +114,16 @@ async fn main() -> Result<()> {
                     navigation_controller.update_current_pose(Pose::from_na(position, yaw));
 
                     if let Some(controller) = message.get_any_controller_pose() {
+                        // we know it exists
+                        let trigger = message.get_any_controller_trigger().unwrap();
+                        let desired_distance = 1.0 - trigger;
                         let heading = (controller.y - position.y).atan2(controller.x - position.x);
-                        let transform = (position - controller).normalize() * 0.3;
-                        let target = controller + transform;
-                        info!("Position: {:.2} {:.2}", position.x, position.y);
-                        info!("Controller: {:.2} {:.2}", controller.x, controller.y);
-                        info!("Transform: {:.2} {:.2}", transform.x, transform.y);
-                        info!("Target: {:.2} {:.2}", target.x, target.y);
+                        let transform = (position - controller).normalize() * desired_distance;
+                        let target = if trigger > 0.1 {
+                            controller + transform
+                        } else {
+                            position
+                        };
                         navigation_controller
                             .update_target_pose(Pose::from_na(target, na::Rotation2::new(heading)));
                     }
