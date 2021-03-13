@@ -113,13 +113,15 @@ async fn main() -> Result<()> {
                     // set start position
                     navigation_controller.update_current_pose(Pose::from_na(position, yaw));
 
-                    if let Some(target) = message.get_any_controller_pose() {
-                        let heading = (target.y - position.y).atan2(target.x - position.x);
-                        let transform = na::Rotation2::new(heading) * na::Vector2::new(0.3, 0.0);
-                        navigation_controller.update_target_pose(Pose::from_na(
-                            target + transform,
-                            na::Rotation2::new(heading),
-                        ));
+                    if let Some(controller) = message.get_any_controller_pose() {
+                        let heading = (controller.y - position.y).atan2(controller.x - position.x);
+                        let transform = 1.0 * (position - controller);
+                        let target = controller + transform;
+                        info!("Position: {:.2} {:.2}", position.x, position.y);
+                        info!("Controller: {:.2} {:.2}", controller.x, controller.y);
+                        info!("Target: {:.2} {:.2}", target.x, target.y);
+                        navigation_controller
+                            .update_target_pose(Pose::from_na(target, na::Rotation2::new(heading)));
                     }
 
                     if let Some(move_command) = navigation_controller.calculate_drive() {
