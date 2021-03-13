@@ -116,7 +116,8 @@ async fn main() -> Result<()> {
                     if let Some(controller) = message.get_any_controller_pose() {
                         let heading = (controller.y - position.y).atan2(controller.x - position.x);
                         let transform = 1.0 * (position.coords - controller.coords);
-                        let target = controller + transform;
+                        let target =
+                            na::Isometry2::translation(transform.x, transform.y) * controller;
                         info!("Position: {:.2} {:.2}", position.x, position.y);
                         info!("Controller: {:.2} {:.2}", controller.x, controller.y);
                         info!("Transform: {:.2} {:.2}", transform.x, transform.y);
