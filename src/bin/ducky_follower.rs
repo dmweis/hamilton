@@ -115,8 +115,11 @@ async fn main() -> Result<()> {
 
                     if let Some(target) = message.get_any_controller_pose() {
                         let heading = (target.y - position.y).atan2(target.x - position.x);
-                        navigation_controller
-                            .update_target_pose(Pose::from_na(target, na::Rotation2::new(heading)));
+                        let transform = 0.3 * (position - target);
+                        navigation_controller.update_target_pose(Pose::from_na(
+                            target + transform,
+                            na::Rotation2::new(heading),
+                        ));
                     }
 
                     if let Some(move_command) = navigation_controller.calculate_drive() {
