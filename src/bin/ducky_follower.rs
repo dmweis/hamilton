@@ -115,7 +115,7 @@ async fn main() -> Result<()> {
 
                     if let Some(controller) = message.get_any_controller_pose() {
                         let heading = (controller.y - position.y).atan2(controller.x - position.x);
-                        let transform = 1.0 * (position - controller);
+                        let transform = 1.0 * (position.coords - controller.coords);
                         let target = controller + transform;
                         info!("Position: {:.2} {:.2}", position.x, position.y);
                         info!("Controller: {:.2} {:.2}", controller.x, controller.y);
