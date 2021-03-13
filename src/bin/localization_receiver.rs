@@ -27,7 +27,12 @@ async fn main() -> Result<()> {
             println!("Tracker not visible");
         }
         if let Some(position) = message.get_any_controller_pose() {
-            println!("controller x: {:.2} y {:.2}", position.x, position.y,);
+            println!(
+                "controller x: {:.2} y {:.2} trigger {:?}",
+                position.x,
+                position.y,
+                message.get_any_controller_trigger()
+            );
         } else {
             println!("Controller not found")
         }
