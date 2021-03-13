@@ -60,7 +60,7 @@ async fn main() -> Result<()> {
 
     let cloned_driver = Arc::clone(&shared_driver);
     let (area_height, area_width) = map.get_size();
-    let controller_state = start_remote_controller_server_with_map(
+    let _controller_state = start_remote_controller_server_with_map(
         ([0, 0, 0, 0], 8080),
         AreaSize::new(area_width, area_height),
     );
@@ -114,14 +114,9 @@ async fn main() -> Result<()> {
                     navigation_controller.update_current_pose(Pose::from_na(position, yaw));
 
                     if let Some(controller) = message.get_any_controller_pose() {
-                        let desired_distance = controller_state.get_last_gamepad_command().left_x;
                         let heading = (controller.y - position.y).atan2(controller.x - position.x);
-                        let transform = (position - controller).normalize() * desired_distance;
-                        let target = if desired_distance > 0.1 {
-                            controller + transform
-                        } else {
-                            position
-                        };
+                        let transform = (position - controller).normalize() * 0.4;
+                        let target = controller + transform;
                         navigation_controller
                             .update_target_pose(Pose::from_na(target, na::Rotation2::new(heading)));
                     }
