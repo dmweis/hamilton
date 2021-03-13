@@ -119,6 +119,7 @@ async fn main() -> Result<()> {
                         let target = controller + transform;
                         info!("Position: {:.2} {:.2}", position.x, position.y);
                         info!("Controller: {:.2} {:.2}", controller.x, controller.y);
+                        info!("Transform: {:.2} {:.2}", transform.x, transform.y);
                         info!("Target: {:.2} {:.2}", target.x, target.y);
                         navigation_controller
                             .update_target_pose(Pose::from_na(target, na::Rotation2::new(heading)));
