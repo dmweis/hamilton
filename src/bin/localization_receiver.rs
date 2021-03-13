@@ -18,13 +18,18 @@ async fn main() -> Result<()> {
     while let Some(message) = localization_rx.recv().await {
         if let Some((position, yaw)) = message.get_tracker_pose() {
             println!(
-                "x: {:.2} y {:.2} yaw {:.2}",
+                "tracker x: {:.2} y {:.2} yaw {:.2}",
                 position.x,
                 position.y,
                 yaw.angle().to_degrees()
             );
         } else {
-            println!("Device not visible");
+            println!("Tracker not visible");
+        }
+        if let Some(position) = message.get_any_controller_pose() {
+            println!("controller x: {:.2} y {:.2}", position.x, position.y,);
+        } else {
+            println!("Controller not found")
         }
     }
     Ok(())
