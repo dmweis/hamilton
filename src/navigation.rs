@@ -73,7 +73,7 @@ fn calculate_drive_gains(current: &Pose, target: &Pose) -> HolonomicWheelCommand
     if strafe_gain.abs() < DEAD_BAND {
         strafe_gain = 0.0;
     }
-    let mut yaw_gain = -(current.rotation.angle() - target.rotation.angle()).clamp(-CLAMP, CLAMP);
+    let mut yaw_gain = -(current.rotation.angle_to(&target.rotation)).clamp(-CLAMP, CLAMP);
     if yaw_gain.abs() < DEAD_BAND {
         yaw_gain = 0.0;
     }
@@ -83,9 +83,36 @@ fn calculate_drive_gains(current: &Pose, target: &Pose) -> HolonomicWheelCommand
 #[cfg(test)]
 mod tests {
     use super::*;
+    use approx::assert_relative_eq;
 
     #[test]
     fn test_creation_with_into() {
         let _pose = Pose::new((10.0, 10.0), 10.0);
+    }
+
+    /// these tests are kind of testing nalgebra.
+    /// I just used them to check that this behaves the way I expect
+    #[test]
+    fn rotation_angle_to() {
+        let pose = na::Rotation2::new(0_f32.to_radians());
+        let target = na::Rotation2::new(90_f32.to_radians());
+        let angle_to = pose.angle_to(&target);
+        assert_relative_eq!(angle_to, 90_f32.to_radians());
+    }
+
+    #[test]
+    fn rotation_angle_to_inverted() {
+        let pose = na::Rotation2::new(0_f32.to_radians());
+        let target = na::Rotation2::new(-90_f32.to_radians());
+        let angle_to = pose.angle_to(&target);
+        assert_relative_eq!(angle_to, -90_f32.to_radians());
+    }
+
+    #[test]
+    fn rotation_angle_to_wrap() {
+        let pose = na::Rotation2::new(-170_f32.to_radians());
+        let target = na::Rotation2::new(170_f32.to_radians());
+        let angle_to = pose.angle_to(&target);
+        assert_relative_eq!(angle_to, -20_f32.to_radians(), max_relative = 0.00001);
     }
 }
