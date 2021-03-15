@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct HolonomicWheelCommand {
     left_front: f32,
     right_front: f32,
@@ -17,6 +18,15 @@ impl HolonomicWheelCommand {
             right_front,
             left_rear,
             right_rear,
+        }
+    }
+
+    pub fn stopped() -> Self {
+        Self {
+            left_front: 0.0,
+            right_front: 0.0,
+            left_rear: 0.0,
+            right_rear: 0.0,
         }
     }
 

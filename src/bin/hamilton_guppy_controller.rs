@@ -108,7 +108,7 @@ async fn main() -> Result<()> {
         let mut reading_rate = interval(Duration::from_millis(50));
         loop {
             reading_rate.tick().await;
-            let state = controller_state.lock().unwrap().get_latest();
+            let state = controller_state.get_last_gamepad_command();
             let move_command =
                 HolonomicWheelCommand::from_move(state.left_x, state.left_y, state.right_y);
             cloned_driver.lock().await.send(move_command).await.unwrap();
