@@ -73,7 +73,10 @@ fn calculate_drive_gains(current: &Pose, target: &Pose) -> HolonomicWheelCommand
     if strafe_gain.abs() < DEAD_BAND {
         strafe_gain = 0.0;
     }
-    let mut yaw_gain = -(current.rotation.angle_to(&target.rotation)).clamp(-CLAMP, CLAMP);
+    let mut yaw_gain = current
+        .rotation
+        .angle_to(&target.rotation)
+        .clamp(-CLAMP, CLAMP);
     if yaw_gain.abs() < DEAD_BAND {
         yaw_gain = 0.0;
     }
