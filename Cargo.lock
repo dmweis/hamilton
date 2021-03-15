@@ -1755,8 +1755,9 @@ checksum = "b5eb417147ba9860a96cfe72a0b93bf88fee1744b5636ec99ab20c1aa9376581"
 [[package]]
 name = "remote-controller"
 version = "0.1.0"
-source = "git+https://github.com/dmweis/remote-controller?branch=main#dec59b87bd13e11a94b708f25126d78bc6fd2332"
+source = "git+https://github.com/dmweis/remote-controller?branch=main#035de85f50617899f7d91f909bd56664c1c422d8"
 dependencies = [
+ "anyhow",
  "futures",
  "include_dir",
  "log",

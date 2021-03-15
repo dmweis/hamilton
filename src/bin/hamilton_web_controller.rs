@@ -6,7 +6,7 @@ use hamilton::{
     map::Map,
     navigation::{NavigationController, Pose},
 };
-use remote_controller::{start_remote_controller_server_with_map, AreaSize};
+use remote_controller::{start_remote_controller_server_with_map, ActionList, AreaSize};
 use std::{
     net::SocketAddrV4,
     sync::{
@@ -62,6 +62,7 @@ async fn main() -> Result<()> {
     let controller_state = start_remote_controller_server_with_map(
         ([0, 0, 0, 0], 8080),
         AreaSize::new(area_width, area_height),
+        ActionList::default(),
     );
 
     spawn(async move {
