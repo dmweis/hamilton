@@ -29,6 +29,51 @@ impl TrackedObjects {
     pub fn get_tracker_pose(&self) -> Option<(na::Point2<f32>, na::Rotation2<f32>)> {
         self.get_tracker_pose_in_openvr().map(tracker_pose_to_plane)
     }
+
+    fn get_any_controller_pose_in_openvr(
+        &self,
+    ) -> Option<(na::Point3<f32>, na::UnitQuaternion<f32>)> {
+        for object in &self.trackers {
+            match object.class {
+                VrDeviceClass::LeftController
+                | VrDeviceClass::RightController
+                | VrDeviceClass::Controller => {
+                    if object.seen && object.tracked {
+                        return Some((object.position, object.rotation));
+                    }
+                }
+                _ => (),
+            }
+        }
+        None
+    }
+
+    pub fn get_any_controller_pose(&self) -> Option<na::Point2<f32>> {
+        match self.get_any_controller_pose_in_openvr() {
+            Some((position, _)) => Some(position.zx()),
+            None => None,
+        }
+    }
+
+    pub fn get_any_controller_trigger(&self) -> Option<f32> {
+        for object in &self.trackers {
+            match object.class {
+                VrDeviceClass::LeftController
+                | VrDeviceClass::RightController
+                | VrDeviceClass::Controller => {
+                    if object.seen && object.tracked {
+                        if let Some(inputs) = &object.inputs {
+                            if let Some(trigger) = &inputs.trigger {
+                                return Some(*trigger);
+                            }
+                        }
+                    }
+                }
+                _ => (),
+            }
+        }
+        None
+    }
 }
 
 pub fn tracker_pose_to_plane(
@@ -61,6 +106,12 @@ pub struct VrDevice {
     pub position: na::Point3<f32>,
     pub rotation: na::UnitQuaternion<f32>,
     pub class: VrDeviceClass,
+    pub inputs: Option<InputsState>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct InputsState {
+    pub trigger: Option<f32>,
 }
 
 fn bind_multicast(addr: &SocketAddrV4, multi_addr: &SocketAddrV4) -> Result<StdUdpSocket> {
