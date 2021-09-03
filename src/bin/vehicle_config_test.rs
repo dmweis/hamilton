@@ -73,7 +73,7 @@ async fn wheels_test(driver: &mut HamiltonLssDriver) -> Result<()> {
     let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
     driver.send(command).await?;
     sleep(Duration::from_secs_f32(1.)).await;
-    return Ok(());
+    Ok(())
 }
 
 async fn move_test(driver: &mut HamiltonLssDriver) -> Result<()> {
@@ -104,7 +104,7 @@ async fn move_test(driver: &mut HamiltonLssDriver) -> Result<()> {
     let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
     driver.send(command).await?;
     sleep(Duration::from_secs_f32(1.)).await;
-    return Ok(());
+    Ok(())
 }
 
 struct MoveCommand {
