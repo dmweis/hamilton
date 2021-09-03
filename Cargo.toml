@@ -7,6 +7,7 @@ default-run = "hamilton_controller"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+# I think these bin entiers don't actually have to be here anymore
 [[bin]]
 name = "hamilton_controller"
 
@@ -21,6 +22,9 @@ name = "localization_receiver"
 
 [[bin]]
 name = "hamilton_web_controller"
+
+[[bin]]
+name = "hamilton_web_remote"
 
 [[bin]]
 name = "ducky_follower"
