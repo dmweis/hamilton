@@ -49,10 +49,8 @@ impl TrackedObjects {
     }
 
     pub fn get_any_controller_pose(&self) -> Option<na::Point2<f32>> {
-        match self.get_any_controller_pose_in_openvr() {
-            Some((position, _)) => Some(position.zx()),
-            None => None,
-        }
+        self.get_any_controller_pose_in_openvr()
+            .map(|(position, _)| position.zx())
     }
 
     pub fn get_any_controller_trigger(&self) -> Option<f32> {
