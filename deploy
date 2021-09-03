@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o xtrace
+
+readonly TARGET_HOST=pi42.local
+readonly TARGET_1_PATH=/home/pi/hamilton_controller
+readonly TARGET_2_PATH=/home/pi/hamilton_web_controller
+readonly TARGET_3_PATH=/home/pi/hamilton_web_remote
+readonly TARGET_ARCH=armv7-unknown-linux-musleabihf
+readonly SOURCE_1_PATH=./target/${TARGET_ARCH}/release/hamilton_controller
+readonly SOURCE_2_PATH=./target/${TARGET_ARCH}/release/hamilton_web_controller
+readonly SOURCE_3_PATH=./target/${TARGET_ARCH}/release/hamilton_web_remote
+
+cargo build --release --target=${TARGET_ARCH} --no-default-features
+rsync -c ${SOURCE_1_PATH} pi@${TARGET_HOST}:${TARGET_1_PATH}
+rsync -c ${SOURCE_2_PATH} pi@${TARGET_HOST}:${TARGET_2_PATH}
+rsync -c ${SOURCE_3_PATH} pi@${TARGET_HOST}:${TARGET_3_PATH}
+# uncomment to run after deploy
+# ssh -t ${TARGET_HOST} ${TARGET_PATH}
