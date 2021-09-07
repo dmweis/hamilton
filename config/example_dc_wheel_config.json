@@ -1,20 +1,20 @@
 {
     "left_front_controller": {
-        "id": 11,
-        "inverted": true
-    },
-    "right_front_controller": {
-        "id": 12,
+        "id": 3,
         "inverted": false
     },
+    "right_front_controller": {
+        "id": 2,
+        "inverted": true
+    },
     "left_rear_controller": {
-        "id": 13,
+        "id": 0,
         "inverted": true
     },
     "right_rear_controller": {
-        "id": 14,
+        "id": 1,
         "inverted": false
     },
-    "multiplier": 720.0,
-    "driver_type": "LSS"
+    "multiplier": 255.0,
+    "driver_type": "Arduino"
 }
