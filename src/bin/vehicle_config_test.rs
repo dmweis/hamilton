@@ -1,6 +1,8 @@
 use anyhow::Result;
 use clap::Clap;
-use hamilton::driver::{BodyConfig, HamiltonDriver, HamiltonLssDriver};
+use hamilton::driver::{
+    BodyConfig, DriverType, HamiltonDcDriver, HamiltonDriver, HamiltonLssDriver,
+};
 use hamilton::holonomic_controller;
 use holonomic_controller::HolonomicWheelCommand;
 use std::sync::Arc;
@@ -40,8 +42,14 @@ async fn main() -> Result<()> {
         info!("Loading default configuration");
         BodyConfig::load_from_default()?
     };
-    let lss_driver = Arc::new(Mutex::new(lss_driver::LSSDriver::new(&args.port)?));
-    let mut hamilton_driver = HamiltonLssDriver::new(lss_driver, body_config).await?;
+
+    let mut hamilton_driver: Box<dyn HamiltonDriver> =
+        if let DriverType::LSS = body_config.driver_type() {
+            let lss_driver = Arc::new(Mutex::new(lss_driver::LSSDriver::new(&args.port)?));
+            Box::new(HamiltonLssDriver::new(lss_driver, body_config).await?)
+        } else {
+            Box::new(HamiltonDcDriver::new(&args.port, body_config)?)
+        };
 
     if args.test {
         return wheels_test(&mut hamilton_driver).await;
@@ -52,7 +60,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn wheels_test(driver: &mut HamiltonLssDriver) -> Result<()> {
+async fn wheels_test(driver: &mut Box<dyn HamiltonDriver>) -> Result<()> {
     info!("Left front");
     let command = holonomic_controller::HolonomicWheelCommand::new(1.0, 0.0, 0.0, 0.0);
     driver.send(command).await?;
@@ -76,7 +84,7 @@ async fn wheels_test(driver: &mut HamiltonLssDriver) -> Result<()> {
     Ok(())
 }
 
-async fn move_test(driver: &mut HamiltonLssDriver) -> Result<()> {
+async fn move_test(driver: &mut Box<dyn HamiltonDriver>) -> Result<()> {
     driver
         .send(
             MoveCommand {
