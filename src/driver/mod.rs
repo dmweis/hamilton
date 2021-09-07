@@ -7,6 +7,7 @@ use crate::holonomic_controller::HolonomicWheelCommand;
 use anyhow::Result;
 use async_trait::async_trait;
 use directories::ProjectDirs;
+pub use hamilton_dc_driver::HamiltonDcDriver;
 pub use hamilton_lss_driver::HamiltonLssDriver;
 use lss_driver::LedColor;
 use serde::{Deserialize, Serialize};
@@ -56,6 +57,18 @@ impl Clampable for f32 {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum DriverType {
+    Arduino,
+    LSS,
+}
+
+impl Default for DriverType {
+    fn default() -> DriverType {
+        DriverType::LSS
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct MotorConfig {
     id: u8,
@@ -69,6 +82,7 @@ pub struct BodyConfig {
     pub left_rear_controller: MotorConfig,
     pub right_rear_controller: MotorConfig,
     pub multiplier: f32,
+    pub driver_type: DriverType,
 }
 
 impl BodyConfig {
@@ -130,5 +144,9 @@ impl BodyConfig {
             self.left_rear_controller.id,
             self.right_rear_controller.id,
         ]
+    }
+
+    pub fn driver_type(&self) -> DriverType {
+        self.driver_type
     }
 }
