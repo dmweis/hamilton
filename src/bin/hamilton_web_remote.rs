@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::Clap;
 use hamilton::{
-    driver::{BodyConfig, HamiltonLssDriver},
+    driver::{BodyConfig, HamiltonDriver, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
 };
 use remote_controller::start_remote_controller_server;
@@ -57,7 +57,7 @@ async fn main() -> Result<()> {
         loop {
             reading_rate.tick().await;
             let mut driver = shared_driver.lock().await;
-            if let Ok(voltage) = driver.read_voltage().await {
+            if let Ok(Some(voltage)) = driver.read_voltage().await {
                 info!("Current voltage is {}", voltage);
                 let color = if voltage < 3.0 * 3.6 {
                     lss_driver::LedColor::Red

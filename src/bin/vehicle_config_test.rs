@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::Clap;
-use hamilton::driver::{BodyConfig, HamiltonLssDriver};
+use hamilton::driver::{BodyConfig, HamiltonDriver, HamiltonLssDriver};
 use hamilton::holonomic_controller;
 use holonomic_controller::HolonomicWheelCommand;
 use std::sync::Arc;

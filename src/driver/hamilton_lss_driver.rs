@@ -1,7 +1,8 @@
 use crate::holonomic_controller::HolonomicWheelCommand;
 
-use super::MotorCommand;
+use super::{HamiltonDriver, MotorCommand};
 use anyhow::Result;
+use async_trait::async_trait;
 use directories::ProjectDirs;
 use lss_driver::{LSSDriver, LedColor};
 use serde::{Deserialize, Serialize};
@@ -24,8 +25,11 @@ impl HamiltonLssDriver {
         drop(driver_lock);
         Ok(Self { driver, config })
     }
+}
 
-    pub async fn send(&mut self, command: HolonomicWheelCommand) -> Result<()> {
+#[async_trait]
+impl HamiltonDriver for HamiltonLssDriver {
+    async fn send(&mut self, command: HolonomicWheelCommand) -> Result<()> {
         let command = self.config.apply_commands_by_mapping(&command);
         let mut driver = self.driver.lock().await;
         for motor_command in command.motors() {
@@ -36,21 +40,21 @@ impl HamiltonLssDriver {
         Ok(())
     }
 
-    pub async fn read_voltage(&mut self) -> Result<f32> {
+    async fn read_voltage(&mut self) -> Result<Option<f32>> {
         let mut voltages = Vec::with_capacity(4);
         let mut driver = self.driver.lock().await;
         for id in self.config.get_ids().iter() {
             voltages.push(driver.query_voltage(*id).await?);
         }
-        Ok(voltages.iter().sum::<f32>() / voltages.len() as f32)
+        Ok(Some(voltages.iter().sum::<f32>() / voltages.len() as f32))
     }
 
-    pub async fn set_color(&mut self, color: LedColor) -> Result<()> {
+    async fn set_color(&mut self, color: LedColor) -> Result<Option<()>> {
         let mut driver = self.driver.lock().await;
         for id in self.config.get_ids().iter() {
             driver.set_color(*id, color).await?;
         }
-        Ok(())
+        Ok(Some(()))
     }
 }
 

@@ -47,6 +47,7 @@ remote-controller = { git = "https://github.com/dmweis/remote-controller", branc
 socket2 = "0.3"
 nalgebra = { version = "0.25", features = ["serde-serialize"] }
 ctrlc = "3.1"
+async-trait = "0.1"
 
 
 [build-dependencies]

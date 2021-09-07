@@ -8,7 +8,7 @@ use guppy_grpc::grpc_controller::{
 };
 use guppy_grpc::{arm_config::ArmConfig, arm_driver::ArmControlSettings};
 use hamilton::{
-    driver::{BodyConfig, HamiltonLssDriver},
+    driver::{BodyConfig, HamiltonDriver, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
 };
 #[allow(unused_imports)]
@@ -122,7 +122,7 @@ async fn main() -> Result<()> {
         loop {
             reading_rate.tick().await;
             let mut driver = shared_driver.lock().await;
-            if let Ok(voltage) = driver.read_voltage().await {
+            if let Ok(Some(voltage)) = driver.read_voltage().await {
                 info!("Current voltage is {}", voltage);
                 let color = if voltage < 3.0 * 3.6 {
                     lss_driver::LedColor::Red
