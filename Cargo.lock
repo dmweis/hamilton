@@ -747,12 +747,15 @@ dependencies = [
  "anyhow",
  "approx",
  "async-trait",
+ "bytes",
  "clap",
  "ctrlc",
  "directories",
+ "futures",
  "guppy-grpc",
  "lss_driver",
  "nalgebra 0.25.2",
+ "postcard-cobs",
  "prost",
  "remote-controller",
  "serde",
@@ -760,6 +763,8 @@ dependencies = [
  "socket2",
  "thiserror",
  "tokio",
+ "tokio-serial",
+ "tokio-util",
  "tonic",
  "tonic-build",
  "tracing",
@@ -1486,6 +1491,12 @@ dependencies = [
  "wepoll-sys",
  "winapi 0.3.9",
 ]
+
+[[package]]
+name = "postcard-cobs"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "78eac0ec394e2eb837b258d587ec78cf19974fbe5ada0068e2ee732533b52fbd"
 
 [[package]]
 name = "ppv-lite86"
