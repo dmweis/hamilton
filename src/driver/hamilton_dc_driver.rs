@@ -66,7 +66,7 @@ trait ConfigMappable {
 impl ConfigMappable for BodyConfig {
     fn apply_commands_by_mapping(&self, command: &HolonomicWheelCommand) -> WireMoveCommand {
         fn create_motor_data(mapping: &MotorConfig, value: f32, multiplier: f32) -> f32 {
-            let inversion_mul = if mapping.inverted { -1.0 } else { 0.0 };
+            let inversion_mul = if mapping.inverted { -1.0 } else { 1.0 };
             (value * multiplier).clamp_num(-multiplier, multiplier) * inversion_mul
         }
 
