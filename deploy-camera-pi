@@ -5,7 +5,7 @@ set -o nounset
 set -o pipefail
 set -o xtrace
 
-readonly TARGET_HOST=pi42.local
+readonly TARGET_HOST=camerapi.local
 readonly TARGET_1_PATH=/home/pi/hamilton_controller
 readonly TARGET_2_PATH=/home/pi/hamilton_web_controller
 readonly TARGET_3_PATH=/home/pi/hamilton_web_remote
