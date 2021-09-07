@@ -89,7 +89,7 @@ async fn main() -> Result<()> {
             gamepad_command.right_y,
         );
         cloned_driver.lock().await.send(move_command).await?;
-        tokio::time::sleep(Duration::from_millis(20)).await;
+        tokio::time::sleep(Duration::from_millis(100)).await;
     }
 
     let move_command = HolonomicWheelCommand::stopped();
