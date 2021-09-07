@@ -118,12 +118,12 @@ impl Encoder<WireMoveCommand> for HamiltonProtocol {
     }
 }
 
-pub struct HamiltonStepperDriver {
+pub struct HamiltonDcDriver {
     framed_port: tokio_util::codec::Framed<tokio_serial::Serial, HamiltonProtocol>,
     config: BodyConfig,
 }
 
-impl HamiltonStepperDriver {
+impl HamiltonDcDriver {
     pub fn new(port: &str, config: BodyConfig) -> Result<Self> {
         let settings = tokio_serial::SerialPortSettings {
             baud_rate: 115200,
@@ -139,7 +139,7 @@ impl HamiltonStepperDriver {
 }
 
 #[async_trait]
-impl HamiltonDriver for HamiltonStepperDriver {
+impl HamiltonDriver for HamiltonDcDriver {
     async fn send(&mut self, command: HolonomicWheelCommand) -> Result<()> {
         let wire_command = self.config.apply_commands_by_mapping(&command);
         self.framed_port
