@@ -14,9 +14,14 @@ pub struct HamiltonLssDriver {
 impl HamiltonLssDriver {
     pub async fn new(driver: Arc<Mutex<LSSDriver>>, config: BodyConfig) -> Result<Self> {
         let mut driver_lock = driver.lock().await;
-        for id in config.get_ids().iter() {
+        for id in config.get_ids() {
+            driver_lock.set_motion_profile(id, true).await?;
+            driver_lock.set_angular_acceleration(id, 100).await?;
+            driver_lock.set_angular_deceleration(id, 100).await?;
+            driver_lock.set_angular_holding_stiffness(id, -10).await?;
+            driver_lock.set_angular_stiffness(id, -10).await?;
             driver_lock
-                .set_maximum_speed(*id, config.multiplier.abs())
+                .set_maximum_speed(id, config.multiplier.abs())
                 .await?;
         }
         drop(driver_lock);
