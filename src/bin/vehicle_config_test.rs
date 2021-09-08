@@ -61,26 +61,52 @@ async fn main() -> Result<()> {
 }
 
 async fn wheels_test(driver: &mut Box<dyn HamiltonDriver>) -> Result<()> {
+    async fn wait() {
+        sleep(Duration::from_secs_f32(2.)).await;
+    }
+    let move_size = 1.0;
     info!("Left front");
-    let command = holonomic_controller::HolonomicWheelCommand::new(1.0, 0.0, 0.0, 0.0);
-    driver.send(command).await?;
-    sleep(Duration::from_secs_f32(2.)).await;
+    driver
+        .send(HolonomicWheelCommand::new(move_size, 0.0, 0.0, 0.0))
+        .await?;
+    wait().await;
+    driver
+        .send(HolonomicWheelCommand::new(-move_size, 0.0, 0.0, 0.0))
+        .await?;
+    wait().await;
     info!("Right front");
-    let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 1.0, 0.0, 0.0);
-    driver.send(command).await?;
-    sleep(Duration::from_secs_f32(2.)).await;
+    driver
+        .send(HolonomicWheelCommand::new(0.0, move_size, 0.0, 0.0))
+        .await?;
+    wait().await;
+    driver
+        .send(HolonomicWheelCommand::new(0.0, -move_size, 0.0, 0.0))
+        .await?;
+    wait().await;
     info!("Left rear");
-    let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 1.0, 0.0);
-    driver.send(command).await?;
-    sleep(Duration::from_secs_f32(2.)).await;
+    driver
+        .send(HolonomicWheelCommand::new(0.0, 0.0, move_size, 0.0))
+        .await?;
+    wait().await;
+    driver
+        .send(HolonomicWheelCommand::new(0.0, 0.0, -move_size, 0.0))
+        .await?;
+    wait().await;
     info!("Right rear");
-    let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 1.0);
-    driver.send(command).await?;
-    sleep(Duration::from_secs_f32(2.)).await;
+    driver
+        .send(HolonomicWheelCommand::new(0.0, 0.0, 0.0, move_size))
+        .await?;
+    wait().await;
+    driver
+        .send(HolonomicWheelCommand::new(0.0, 0.0, 0.0, -move_size))
+        .await?;
+    wait().await;
     info!("Stopping");
-    let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
-    driver.send(command).await?;
-    sleep(Duration::from_secs_f32(1.)).await;
+    driver
+        .send(HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0))
+        .await?;
+    wait().await;
+
     Ok(())
 }
 
