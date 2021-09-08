@@ -9,6 +9,7 @@ use tokio::sync::Mutex;
 pub struct HamiltonLssDriver {
     driver: Arc<Mutex<LSSDriver>>,
     config: BodyConfig,
+    halt_mode: bool,
 }
 
 impl HamiltonLssDriver {
@@ -25,7 +26,11 @@ impl HamiltonLssDriver {
                 .await?;
         }
         drop(driver_lock);
-        Ok(Self { driver, config })
+        Ok(Self {
+            driver,
+            config,
+            halt_mode: false,
+        })
     }
 }
 
@@ -35,9 +40,13 @@ impl HamiltonDriver for HamiltonLssDriver {
         let command = self.config.apply_commands_by_mapping(&command);
         let mut driver = self.driver.lock().await;
         for motor_command in command.motors() {
-            driver
-                .set_rotation_speed(motor_command.id(), motor_command.speed())
-                .await?;
+            if (!self.halt_mode) && motor_command.speed() == 0.0 {
+                driver.limp(motor_command.id()).await?;
+            } else {
+                driver
+                    .set_rotation_speed(motor_command.id(), motor_command.speed())
+                    .await?;
+            }
         }
         Ok(())
     }
@@ -57,6 +66,14 @@ impl HamiltonDriver for HamiltonLssDriver {
             driver.set_color(*id, color).await?;
         }
         Ok(Some(()))
+    }
+
+    fn set_halt_mode(&mut self, on: bool) {
+        self.halt_mode = on;
+    }
+
+    fn halt_mode(&self) -> bool {
+        self.halt_mode
     }
 }
 

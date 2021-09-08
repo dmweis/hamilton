@@ -37,6 +37,8 @@ pub trait HamiltonDriver: Send + Sync {
     async fn send(&mut self, command: HolonomicWheelCommand) -> Result<()>;
     async fn read_voltage(&mut self) -> Result<Option<f32>>;
     async fn set_color(&mut self, color: LedColor) -> Result<Option<()>>;
+    fn set_halt_mode(&mut self, on: bool);
+    fn halt_mode(&self) -> bool;
 }
 
 trait Clampable {

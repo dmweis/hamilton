@@ -156,6 +156,12 @@ impl HamiltonDriver for HamiltonDcDriver {
     async fn set_color(&mut self, _color: LedColor) -> Result<Option<()>> {
         Ok(None)
     }
+
+    fn set_halt_mode(&mut self, _on: bool) {}
+
+    fn halt_mode(&self) -> bool {
+        false
+    }
 }
 
 #[cfg(test)]
