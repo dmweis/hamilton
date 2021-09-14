@@ -113,11 +113,10 @@ void setMotorLB(int value)
 
 void setMotorLF(int value)
 {
-    setMotor(10, 8, 9, value);
+    setMotor(8, 13, 9, value);
 }
 
 void setMotorRF(int value)
 {
-    setMotor(12, 13, 11, value);
+    setMotor(10, 12, 11, value);
 }
-
