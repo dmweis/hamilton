@@ -1,6 +1,10 @@
 #include <PacketSerial.h>
 #include "Motor.h"
 
+volatile long lastUpdateTime = 0;
+
+long commandTimeout = 200;
+
 PacketSerial_<COBS, 0, 500> packetSerial;
 
 Motor motorA = Motor(2, 4, 3);
@@ -17,6 +21,13 @@ void setup()
 void loop()
 {
   packetSerial.update();
+  if (millis() - lastUpdateTime > commandTimeout)
+  {
+    motorA.set_speed(0);
+    motorB.set_speed(0);
+    motorC.set_speed(0);
+    motorD.set_speed(0);
+  }
 }
 
 void onPacketReceived(const uint8_t *buffer, size_t size)
@@ -25,6 +36,7 @@ void onPacketReceived(const uint8_t *buffer, size_t size)
   {
     return;
   }
+  lastUpdateTime = millis();
   // Make a temporary buffer.
   uint8_t tempBuffer[size];
 
