@@ -5,14 +5,14 @@
     },
     "right_front_controller": {
         "id": 3,
-        "inverted": false
+        "inverted": true
     },
     "left_rear_controller": {
-        "id": 1,
-        "inverted": false
+        "id": 0,
+        "inverted": true
     },
     "right_rear_controller": {
-        "id": 0,
+        "id": 1,
         "inverted": false
     },
     "multiplier": 255.0,
