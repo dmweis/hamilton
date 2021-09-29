@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::Clap;
 use hamilton::{
-    driver::{BodyConfig, HamiltonDriver, HamiltonLssDriver},
+    driver::{BodyConfig, DriverType, HamiltonDcDriver, HamiltonDriver, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
 };
 use remote_controller::start_remote_controller_server;
@@ -45,8 +45,13 @@ async fn main() -> Result<()> {
         BodyConfig::load_from_default()?
     };
 
-    let lss_driver = Arc::new(Mutex::new(lss_driver::LSSDriver::new(&args.port)?));
-    let hamilton_driver = HamiltonLssDriver::new(lss_driver, body_config).await?;
+    let hamilton_driver: Box<dyn HamiltonDriver> =
+        if let DriverType::LSS = body_config.driver_type() {
+            let lss_driver = Arc::new(Mutex::new(lss_driver::LSSDriver::new(&args.port)?));
+            Box::new(HamiltonLssDriver::new(lss_driver, body_config).await?)
+        } else {
+            Box::new(HamiltonDcDriver::new(&args.port, body_config)?)
+        };
     let shared_driver = Arc::new(Mutex::new(hamilton_driver));
 
     let cloned_driver = Arc::clone(&shared_driver);

@@ -1,6 +1,8 @@
 use anyhow::Result;
 use clap::Clap;
-use hamilton::driver::{BodyConfig, HamiltonDriver, HamiltonLssDriver};
+use hamilton::driver::{
+    BodyConfig, DriverType, HamiltonDcDriver, HamiltonDriver, HamiltonLssDriver,
+};
 use hamilton::holonomic_controller;
 use holonomic_controller::HolonomicWheelCommand;
 use std::sync::Arc;
@@ -40,8 +42,14 @@ async fn main() -> Result<()> {
         info!("Loading default configuration");
         BodyConfig::load_from_default()?
     };
-    let lss_driver = Arc::new(Mutex::new(lss_driver::LSSDriver::new(&args.port)?));
-    let mut hamilton_driver = HamiltonLssDriver::new(lss_driver, body_config).await?;
+
+    let mut hamilton_driver: Box<dyn HamiltonDriver> =
+        if let DriverType::LSS = body_config.driver_type() {
+            let lss_driver = Arc::new(Mutex::new(lss_driver::LSSDriver::new(&args.port)?));
+            Box::new(HamiltonLssDriver::new(lss_driver, body_config).await?)
+        } else {
+            Box::new(HamiltonDcDriver::new(&args.port, body_config)?)
+        };
 
     if args.test {
         return wheels_test(&mut hamilton_driver).await;
@@ -52,55 +60,112 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn wheels_test(driver: &mut HamiltonLssDriver) -> Result<()> {
+async fn wheels_test(driver: &mut Box<dyn HamiltonDriver>) -> Result<()> {
+    async fn wait() {
+        sleep(Duration::from_secs_f32(0.1)).await;
+    }
+    sleep(Duration::from_secs_f32(2.0)).await;
+    let move_size = 1.0;
     info!("Left front");
-    let command = holonomic_controller::HolonomicWheelCommand::new(1.0, 0.0, 0.0, 0.0);
-    driver.send(command).await?;
-    sleep(Duration::from_secs_f32(2.)).await;
+    info!("forwards");
+    for _ in 0..20 {
+        driver
+            .send(HolonomicWheelCommand::new(move_size, 0.0, 0.0, 0.0))
+            .await?;
+        wait().await;
+    }
+    info!("backwards");
+    for _ in 0..20 {
+        driver
+            .send(HolonomicWheelCommand::new(-move_size, 0.0, 0.0, 0.0))
+            .await?;
+        wait().await;
+    }
+
     info!("Right front");
-    let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 1.0, 0.0, 0.0);
-    driver.send(command).await?;
-    sleep(Duration::from_secs_f32(2.)).await;
+    info!("forwards");
+    for _ in 0..20 {
+        driver
+            .send(HolonomicWheelCommand::new(0.0, move_size, 0.0, 0.0))
+            .await?;
+        wait().await;
+    }
+    info!("backwards");
+    for _ in 0..20 {
+        driver
+            .send(HolonomicWheelCommand::new(0.0, -move_size, 0.0, 0.0))
+            .await?;
+        wait().await;
+    }
     info!("Left rear");
-    let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 1.0, 0.0);
-    driver.send(command).await?;
-    sleep(Duration::from_secs_f32(2.)).await;
+    info!("forwards");
+    for _ in 0..20 {
+        driver
+            .send(HolonomicWheelCommand::new(0.0, 0.0, move_size, 0.0))
+            .await?;
+        wait().await;
+    }
+    info!("backwards");
+    for _ in 0..20 {
+        driver
+            .send(HolonomicWheelCommand::new(0.0, 0.0, -move_size, 0.0))
+            .await?;
+        wait().await;
+    }
     info!("Right rear");
-    let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 1.0);
-    driver.send(command).await?;
-    sleep(Duration::from_secs_f32(2.)).await;
+    info!("forwards");
+    for _ in 0..20 {
+        driver
+            .send(HolonomicWheelCommand::new(0.0, 0.0, 0.0, move_size))
+            .await?;
+        wait().await;
+    }
+    info!("backwards");
+    for _ in 0..20 {
+        driver
+            .send(HolonomicWheelCommand::new(0.0, 0.0, 0.0, -move_size))
+            .await?;
+        wait().await;
+    }
     info!("Stopping");
-    let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
-    driver.send(command).await?;
-    sleep(Duration::from_secs_f32(1.)).await;
+    for _ in 0..20 {
+        driver
+            .send(HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0))
+            .await?;
+        wait().await;
+    }
     Ok(())
 }
 
-async fn move_test(driver: &mut HamiltonLssDriver) -> Result<()> {
-    driver
-        .send(
-            MoveCommand {
-                x: 0.25,
-                y: 0.75,
-                yaw: 0.0,
-            }
-            .into(),
-        )
-        .await
-        .map_err(|_| Status::internal("Failed to send message over serial port"))?;
-    sleep(Duration::from_secs_f32(1.5)).await;
-    driver
-        .send(
-            MoveCommand {
-                x: -0.25,
-                y: -0.75,
-                yaw: 0.0,
-            }
-            .into(),
-        )
-        .await
-        .map_err(|_| Status::internal("Failed to send message over serial port"))?;
-    sleep(Duration::from_secs_f32(1.5)).await;
+async fn move_test(driver: &mut Box<dyn HamiltonDriver>) -> Result<()> {
+    for _ in 0..15 {
+        driver
+            .send(
+                MoveCommand {
+                    x: 0.25,
+                    y: 0.75,
+                    yaw: 0.0,
+                }
+                .into(),
+            )
+            .await
+            .map_err(|_| Status::internal("Failed to send message over serial port"))?;
+        sleep(Duration::from_secs_f32(0.1)).await;
+    }
+    for _ in 0..15 {
+        driver
+            .send(
+                MoveCommand {
+                    x: -0.25,
+                    y: -0.75,
+                    yaw: 0.0,
+                }
+                .into(),
+            )
+            .await
+            .map_err(|_| Status::internal("Failed to send message over serial port"))?;
+        sleep(Duration::from_secs_f32(0.1)).await;
+    }
     let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
     driver.send(command).await?;
     sleep(Duration::from_secs_f32(1.)).await;
