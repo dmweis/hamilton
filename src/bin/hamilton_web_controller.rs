@@ -95,7 +95,7 @@ async fn main() -> Result<()> {
     })?;
 
     let mut localization_rx =
-        hamilton::localiser::create_localization_subscriber(args.address).await?;
+        hamilton::openvr_localiser::create_localization_subscriber(args.address).await?;
 
     // this loop is getting super convoluted
     // refactor

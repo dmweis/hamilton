@@ -14,7 +14,7 @@ async fn main() -> Result<()> {
     let args: Args = Args::parse();
 
     let mut localization_rx =
-        hamilton::localiser::create_localization_subscriber(args.address).await?;
+        hamilton::openvr_localiser::create_localization_subscriber(args.address).await?;
     while let Some(message) = localization_rx.recv().await {
         if let Some((position, yaw)) = message.get_tracker_pose() {
             println!(
