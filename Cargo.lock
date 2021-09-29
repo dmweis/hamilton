@@ -1352,10 +1352,9 @@ dependencies = [
 [[package]]
 name = "pose-publisher"
 version = "0.1.0"
-source = "git+https://github.com/dmweis/rustviz?branch=main#46b2d5c6982a4d7f2adbea37b89ceac3a5181e5e"
+source = "git+https://github.com/dmweis/rustviz?branch=main#f41b3b94af53194f1da0cb589f06d4eb5fefc7a2"
 dependencies = [
  "clap",
- "nalgebra",
  "serde",
  "serde_json",
  "socket2 0.4.2",

@@ -7,7 +7,7 @@ use hamilton::{
     navigation::{NavigationController, Pose},
 };
 use nalgebra as na;
-use pose_publisher::{ObjectPose, PoseClientUpdate, PosePublisher};
+use pose_publisher::{pose::Color, PoseClientUpdate, PosePublisher};
 use remote_controller::{start_remote_controller_server_with_map, ActionList, AreaSize};
 use std::{
     net::SocketAddrV4,
@@ -119,24 +119,20 @@ async fn main() -> Result<()> {
         if let Ok(message) = timeout(Duration::from_millis(500), localization_rx.recv()).await {
             if let Some(message) = message {
                 if let Some(pose) = message.find_tracker_pose() {
-                    let mut update = PoseClientUpdate::new("hamilton publisher");
+                    let mut update = PoseClientUpdate::new();
 
                     let robot_target_vector = pose.rotation() * na::Vector2::new(0.1, 0.);
-                    let robot_pose = ObjectPose::with_defaults(
-                        "robot",
-                        na::Point3::new(pose.position().x, pose.position().y, 0.1),
-                    );
-                    let mut robot_target_direction = ObjectPose::with_defaults(
-                        "robot direction",
-                        na::Point3::new(
-                            pose.position().x + robot_target_vector.x,
-                            pose.position().y + robot_target_vector.y,
-                            0.1,
-                        ),
-                    );
-                    robot_target_direction.color = na::Vector3::new(0., 1., 0.);
-                    update.add(robot_pose);
-                    update.add(robot_target_direction);
+                    update.add("robot", (pose.position().x, pose.position().y, 0.1));
+                    update
+                        .add(
+                            "robot direction",
+                            (
+                                pose.position().x + robot_target_vector.x,
+                                pose.position().y + robot_target_vector.y,
+                                0.1,
+                            ),
+                        )
+                        .with_color(Color::Green);
                     // set start position
                     navigation_controller.update_current_pose(pose.clone());
 
@@ -150,24 +146,15 @@ async fn main() -> Result<()> {
                         //     pose
                         // );
 
-                        let target_pose = ObjectPose::with_defaults(
-                            "target",
-                            na::Point3::new(target.x, target.y, 0.1),
-                        );
+                        update.add("target", (target.x, target.y, 0.1));
 
                         let target_vector = heading * na::Vector2::new(0.1, 0.);
-                        let mut target_direction = ObjectPose::with_defaults(
-                            "target direction",
-                            na::Point3::new(
-                                target.x + target_vector.x,
-                                target.y + target_vector.y,
-                                0.1,
-                            ),
-                        );
-                        target_direction.color = na::Vector3::new(0., 1., 0.);
-
-                        update.add(target_pose);
-                        update.add(target_direction);
+                        update
+                            .add(
+                                "target direction",
+                                (target.x + target_vector.x, target.y + target_vector.y, 0.1),
+                            )
+                            .with_color(Color::Green);
 
                         navigation_controller.update_target_pose(Pose::from_na(target, heading));
                     }
