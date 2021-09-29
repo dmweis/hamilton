@@ -1,7 +1,12 @@
 use anyhow::Result;
 use clap::Clap;
+use hamilton::{
+    map::Map,
+    navigation::{NavigationController, Pose},
+};
 use nalgebra as na;
 use pose_publisher::{pose::Color, PoseClientUpdate, PosePublisher};
+use remote_controller::{start_remote_controller_server_with_map, ActionList, AreaSize};
 use std::net::SocketAddrV4;
 
 #[derive(Clap)]
@@ -17,13 +22,22 @@ struct Args {
 async fn main() -> Result<()> {
     let args: Args = Args::parse();
 
+    let map = Map::new(na::Vector2::new(1., 1.), na::Vector2::new(0., 0.));
+    let (area_height, area_width) = map.get_size();
+    let controller_state = start_remote_controller_server_with_map(
+        ([0, 0, 0, 0], 8080),
+        AreaSize::new(area_width, area_height),
+        ActionList::default(),
+    );
     let pose_publisher = PosePublisher::new(args.pose_pub_address)?;
+    let mut navigation_controller = NavigationController::default();
 
     let mut localization_rx =
         hamilton::ir_tracker_localiser::create_localization_subscriber(args.address).await?;
     while let Some(message) = localization_rx.recv().await {
+        let mut update = PoseClientUpdate::new();
+
         if let Some(pose) = message.find_tracker_pose() {
-            let mut update = PoseClientUpdate::new();
             update
                 .add("robot", (pose.position().x, pose.position().y, 0.1))
                 .with_color(Color::Blue);
@@ -38,11 +52,31 @@ async fn main() -> Result<()> {
                     ),
                 )
                 .with_color(Color::Red);
-            pose_publisher.publish(update)?;
-
-            println!("Center pose {}", pose);
+            navigation_controller.update_current_pose(pose);
         } else {
             println!("Failed to find points");
+        }
+
+        if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
+            let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
+            update
+                .add("target", (target.x, target.y, 0.1))
+                .with_color(Color::Blue);
+
+            let target_vector = heading * na::Vector2::new(0.1, 0.);
+            update
+                .add(
+                    "target direction",
+                    (target.x + target_vector.x, target.y + target_vector.y, 0.1),
+                )
+                .with_color(Color::Red);
+
+            navigation_controller.update_target_pose(Pose::from_na(target, heading));
+        }
+        pose_publisher.publish(update)?;
+
+        if let Some(command) = navigation_controller.calculate_gains() {
+            println!("Navigation command: {:?}", command);
         }
     }
     Ok(())
