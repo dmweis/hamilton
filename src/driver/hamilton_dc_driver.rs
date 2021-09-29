@@ -11,6 +11,7 @@ use bytes::{BufMut, BytesMut};
 use futures::SinkExt;
 use lss_driver::LedColor;
 use std::str;
+use tokio_serial::SerialPortBuilderExt;
 use tokio_util::codec::{Decoder, Encoder};
 
 #[derive(thiserror::Error, Debug)]
@@ -119,17 +120,14 @@ impl Encoder<WireMoveCommand> for HamiltonProtocol {
 }
 
 pub struct HamiltonDcDriver {
-    framed_port: tokio_util::codec::Framed<tokio_serial::Serial, HamiltonProtocol>,
+    framed_port: tokio_util::codec::Framed<tokio_serial::SerialStream, HamiltonProtocol>,
     config: BodyConfig,
 }
 
 impl HamiltonDcDriver {
     pub fn new(port: &str, config: BodyConfig) -> Result<Self> {
-        let settings = tokio_serial::SerialPortSettings {
-            baud_rate: 115200,
-            ..Default::default()
-        };
-        let serial_port = tokio_serial::Serial::from_path(port, &settings)
+        let serial_port = tokio_serial::new(port, 115200)
+            .open_native_async()
             .map_err(|_| HamiltonError::FailedOpeningSerialPort)?;
         Ok(Self {
             framed_port: HamiltonProtocol.framed(serial_port),
