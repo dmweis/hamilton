@@ -1,7 +1,6 @@
-use crate::holonomic_controller::HolonomicWheelCommand;
+use crate::holonomic_controller::{HolonomicWheelCommand, MoveCommand};
 use nalgebra as na;
 use std::fmt;
-use tracing::info;
 
 #[derive(Debug, Clone)]
 pub struct Pose {
@@ -70,20 +69,25 @@ impl NavigationController {
         self.target_pose = None;
     }
 
-    pub fn calculate_drive(&self) -> Option<HolonomicWheelCommand> {
+    pub fn calculate_gains(&self) -> Option<MoveCommand> {
         // maybe this should be done on `update_current_pose`
         match (&self.current_pose, &self.target_pose) {
             (Some(current), Some(target)) => Some(calculate_drive_gains(current, target)),
             _ => None,
         }
     }
+
+    pub fn calculate_drive(&self) -> Option<HolonomicWheelCommand> {
+        self.calculate_gains()
+            .map(|move_command| HolonomicWheelCommand::from_move_command(&move_command))
+    }
 }
 
 const TRANSLATION_GAIN: f32 = 10.0;
 const CLAMP: f32 = 0.5;
-const DEAD_BAND: f32 = 0.25;
+const DEAD_BAND: f32 = 0.15;
 
-fn calculate_drive_gains(current: &Pose, target: &Pose) -> HolonomicWheelCommand {
+fn calculate_drive_gains(current: &Pose, target: &Pose) -> MoveCommand {
     let translation = current.position - target.position;
     let gain_vector = current.rotation.inverse() * translation;
 
@@ -102,12 +106,7 @@ fn calculate_drive_gains(current: &Pose, target: &Pose) -> HolonomicWheelCommand
     if yaw_gain.abs() < DEAD_BAND {
         yaw_gain = 0.0;
     }
-    info!(
-        "Forward {} strafe {} yaw {}",
-        forward_gain, strafe_gain, yaw_gain
-    );
-    // HolonomicWheelCommand::from_move(forward_gain, strafe_gain, yaw_gain)
-    HolonomicWheelCommand::from_move(-forward_gain, -strafe_gain, yaw_gain)
+    MoveCommand::new(forward_gain, strafe_gain, yaw_gain)
 }
 
 #[cfg(test)]
