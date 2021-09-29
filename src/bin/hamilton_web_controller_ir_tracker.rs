@@ -138,16 +138,8 @@ async fn main() -> Result<()> {
 
                     if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
                         let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
-                        // info!(
-                        //     "\ntarget [{}, {}] -> {}\npose {}",
-                        //     target.x,
-                        //     target.y,
-                        //     heading.angle().to_degrees(),
-                        //     pose
-                        // );
 
                         update.add("target", (target.x, target.y, 0.1));
-
                         let target_vector = heading * na::Vector2::new(0.1, 0.);
                         update
                             .add(
