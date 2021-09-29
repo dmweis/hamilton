@@ -86,7 +86,10 @@ impl IrTrackers {
             let normalized_translation = translation.normalize();
             let rotation =
                 na::Rotation2::new(normalized_translation.x.atan2(normalized_translation.y));
-            let pose = Pose::from_na(triangle_center, rotation);
+            let pose = Pose::from_na(
+                na::Point2::new(1.0 - triangle_center_y, 1.0 - triangle_center_x),
+                rotation,
+            );
             return Some(pose);
         }
         None

@@ -1,6 +1,7 @@
 use crate::holonomic_controller::HolonomicWheelCommand;
 use nalgebra as na;
 use std::fmt;
+use tracing::info;
 
 #[derive(Debug, Clone)]
 pub struct Pose {
@@ -19,6 +20,14 @@ impl Pose {
             position: na::Point2::new(x, y),
             rotation: na::Rotation2::new(rotation),
         }
+    }
+
+    pub fn position(&self) -> &na::Point2<f32> {
+        &self.position
+    }
+
+    pub fn rotation(&self) -> &na::Rotation2<f32> {
+        &self.rotation
     }
 }
 
@@ -72,7 +81,7 @@ impl NavigationController {
 
 const TRANSLATION_GAIN: f32 = 10.0;
 const CLAMP: f32 = 0.5;
-const DEAD_BAND: f32 = 0.1;
+const DEAD_BAND: f32 = 0.25;
 
 fn calculate_drive_gains(current: &Pose, target: &Pose) -> HolonomicWheelCommand {
     let translation = current.position - target.position;
@@ -93,7 +102,12 @@ fn calculate_drive_gains(current: &Pose, target: &Pose) -> HolonomicWheelCommand
     if yaw_gain.abs() < DEAD_BAND {
         yaw_gain = 0.0;
     }
-    HolonomicWheelCommand::from_move(forward_gain, strafe_gain, yaw_gain)
+    info!(
+        "Forward {} strafe {} yaw {}",
+        forward_gain, strafe_gain, yaw_gain
+    );
+    // HolonomicWheelCommand::from_move(forward_gain, strafe_gain, yaw_gain)
+    HolonomicWheelCommand::from_move(-forward_gain, -strafe_gain, yaw_gain)
 }
 
 #[cfg(test)]

@@ -7,6 +7,7 @@ use hamilton::{
     navigation::{NavigationController, Pose},
 };
 use nalgebra as na;
+use pose_publisher::{ObjectPose, PoseClientUpdate, PosePublisher};
 use remote_controller::{start_remote_controller_server_with_map, ActionList, AreaSize};
 use std::{
     net::SocketAddrV4,
@@ -33,6 +34,8 @@ struct Args {
     config: Option<String>,
     #[clap(short, long, default_value = "239.0.0.22:7071")]
     address: SocketAddrV4,
+    #[clap(short, long, default_value = "239.0.0.22:7072")]
+    pose_pub_address: SocketAddrV4,
 }
 
 #[tokio::main]
@@ -51,8 +54,10 @@ async fn main() -> Result<()> {
         BodyConfig::load_from_default()?
     };
 
-    let map = Map::new(na::Vector2::new(0., 0.), na::Vector2::new(1., 1.));
+    let map = Map::new(na::Vector2::new(1., 1.), na::Vector2::new(0., 0.));
     let mut navigation_controller = NavigationController::default();
+
+    let pose_publisher = PosePublisher::new(args.pose_pub_address)?;
 
     let hamilton_driver: Box<dyn HamiltonDriver> =
         if let DriverType::LSS = body_config.driver_type() {
@@ -114,18 +119,55 @@ async fn main() -> Result<()> {
         if let Ok(message) = timeout(Duration::from_millis(500), localization_rx.recv()).await {
             if let Some(message) = message {
                 if let Some(pose) = message.find_tracker_pose() {
+                    let mut update = PoseClientUpdate::new("hamilton publisher");
+
+                    let robot_target_vector = pose.rotation() * na::Vector2::new(0.1, 0.);
+                    let robot_pose = ObjectPose::with_defaults(
+                        "robot",
+                        na::Point3::new(pose.position().x, pose.position().y, 0.1),
+                    );
+                    let mut robot_target_direction = ObjectPose::with_defaults(
+                        "robot direction",
+                        na::Point3::new(
+                            pose.position().x + robot_target_vector.x,
+                            pose.position().y + robot_target_vector.y,
+                            0.1,
+                        ),
+                    );
+                    robot_target_direction.color = na::Vector3::new(0., 1., 0.);
+                    update.add(robot_pose);
+                    update.add(robot_target_direction);
                     // set start position
                     navigation_controller.update_current_pose(pose.clone());
 
                     if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
                         let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
-                        info!(
-                            "\ntarget [{}, {}] -> {}\npose {}",
-                            target.x,
-                            target.y,
-                            heading.angle().to_degrees(),
-                            pose
+                        // info!(
+                        //     "\ntarget [{}, {}] -> {}\npose {}",
+                        //     target.x,
+                        //     target.y,
+                        //     heading.angle().to_degrees(),
+                        //     pose
+                        // );
+
+                        let target_pose = ObjectPose::with_defaults(
+                            "target",
+                            na::Point3::new(target.x, target.y, 0.1),
                         );
+
+                        let target_vector = heading * na::Vector2::new(0.1, 0.);
+                        let mut target_direction = ObjectPose::with_defaults(
+                            "target direction",
+                            na::Point3::new(
+                                target.x + target_vector.x,
+                                target.y + target_vector.y,
+                                0.1,
+                            ),
+                        );
+                        target_direction.color = na::Vector3::new(0., 1., 0.);
+
+                        update.add(target_pose);
+                        update.add(target_direction);
 
                         navigation_controller.update_target_pose(Pose::from_na(target, heading));
                     }
@@ -139,6 +181,7 @@ async fn main() -> Result<()> {
                             .send(HolonomicWheelCommand::stopped())
                             .await?;
                     }
+                    pose_publisher.publish(update)?;
                 } else {
                     let move_command = HolonomicWheelCommand::stopped();
                     cloned_driver.lock().await.send(move_command).await?;
