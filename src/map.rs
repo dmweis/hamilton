@@ -12,6 +12,13 @@ pub struct Map {
 }
 
 impl Map {
+    pub fn new(front_left: na::Vector2<f32>, rear_right: na::Vector2<f32>) -> Self {
+        Self {
+            front_left,
+            rear_right,
+        }
+    }
+
     pub fn get_size(&self) -> (f32, f32) {
         (
             (self.front_left.x - self.rear_right.x).abs(),

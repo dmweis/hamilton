@@ -1,38 +1,15 @@
+use crate::navigation::Pose;
 use anyhow::{anyhow, Result};
 use na::distance;
 use nalgebra as na;
 use serde::{Deserialize, Serialize};
 use socket2::{Domain, Protocol, Socket, Type};
-use std::fmt;
 use std::{
     net::{SocketAddrV4, UdpSocket as StdUdpSocket},
     str,
 };
 use tokio::{net::UdpSocket as TokioUdpSocket, sync::mpsc, task};
-use tracing::warn;
-
-pub struct Pose2 {
-    position: na::Point2<f32>,
-    rotation: na::Rotation2<f32>,
-}
-
-impl Pose2 {
-    fn new(position: na::Point2<f32>, rotation: na::Rotation2<f32>) -> Self {
-        Self { position, rotation }
-    }
-}
-
-impl fmt::Display for Pose2 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "[{}, {}] -> {}",
-            self.position.x,
-            self.position.y,
-            self.rotation.angle().to_degrees()
-        )
-    }
-}
+use tracing::{error, warn};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct IrTrackers {
@@ -65,7 +42,7 @@ impl IrTrackers {
         new_points
     }
 
-    pub fn find_tracker_pose(&self) -> Option<Pose2> {
+    pub fn find_tracker_pose(&self) -> Option<Pose> {
         if self.point_count < 4 {
             warn!("Less than 4 points visible");
             return None;
@@ -77,6 +54,10 @@ impl IrTrackers {
                 .into_iter()
                 .filter(|other_point| other_point != current_point)
                 .collect();
+            if points_copy.len() < 3 {
+                error!("Somehow ended up with less than 3 points");
+                return None;
+            }
             points_copy.sort_by(|a, b| {
                 distance(current_point, a)
                     .partial_cmp(&distance(current_point, b))
@@ -105,7 +86,7 @@ impl IrTrackers {
             let normalized_translation = translation.normalize();
             let rotation =
                 na::Rotation2::new(normalized_translation.x.atan2(normalized_translation.y));
-            let pose = Pose2::new(triangle_center, rotation);
+            let pose = Pose::from_na(triangle_center, rotation);
             return Some(pose);
         }
         None

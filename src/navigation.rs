@@ -1,7 +1,8 @@
 use crate::holonomic_controller::HolonomicWheelCommand;
 use nalgebra as na;
+use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Pose {
     position: na::Point2<f32>,
     rotation: na::Rotation2<f32>,
@@ -18,6 +19,18 @@ impl Pose {
             position: na::Point2::new(x, y),
             rotation: na::Rotation2::new(rotation),
         }
+    }
+}
+
+impl fmt::Display for Pose {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "[{}, {}] -> {}",
+            self.position.x,
+            self.position.y,
+            self.rotation.angle().to_degrees()
+        )
     }
 }
 
