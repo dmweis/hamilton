@@ -87,8 +87,13 @@ impl IrTrackers {
             let rotation =
                 na::Rotation2::new(normalized_translation.x.atan2(normalized_translation.y));
 
-            let robot_pose =
-                triangle_center + rotation * na::Vector2::new(translation.magnitude() * 1.5, 0.0);
+            let triangle_to_robot_translation = na::Vector2::new(0.058, 0.0);
+            // use hardcoded value because this causes jitter
+            // Or maybe that's an over eager controller?
+            // let triangle_to_robot_translation =
+            //     na::Vector2::new(translation.magnitude() * 1.5, 0.0);
+
+            let robot_pose = triangle_center + rotation * triangle_to_robot_translation;
             let pose = Pose::from_na(
                 na::Point2::new(1.0 - robot_pose.y, 1.0 - robot_pose.x),
                 rotation,
