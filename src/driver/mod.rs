@@ -33,7 +33,7 @@ impl MotorCommand {
 }
 
 #[async_trait]
-pub trait HamiltonDriver: Send + Sync {
+pub trait HamiltonDriver: Send {
     async fn send(&mut self, command: HolonomicWheelCommand) -> Result<()>;
     async fn read_voltage(&mut self) -> Result<Option<f32>>;
     async fn set_color(&mut self, color: LedColor) -> Result<Option<()>>;
