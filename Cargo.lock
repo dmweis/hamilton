@@ -650,7 +650,7 @@ dependencies = [
  "async-std",
  "async-trait",
  "lss_driver",
- "nalgebra 0.26.2",
+ "nalgebra",
  "parry3d",
  "serde",
  "serde_json",
@@ -668,7 +668,7 @@ dependencies = [
  "clap",
  "ctrlc",
  "guppy-controller",
- "nalgebra 0.26.2",
+ "nalgebra",
  "prost",
  "tokio",
  "tonic",
@@ -708,13 +708,14 @@ dependencies = [
  "futures",
  "guppy-grpc",
  "lss_driver",
- "nalgebra 0.25.2",
+ "nalgebra",
+ "pose-publisher",
  "postcard-cobs",
  "prost",
  "remote-controller",
  "serde",
  "serde_json",
- "socket2",
+ "socket2 0.3.19",
  "thiserror",
  "tokio",
  "tokio-serial",
@@ -825,7 +826,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project",
- "socket2",
+ "socket2 0.3.19",
  "tokio",
  "tower-service",
  "tracing",
@@ -1076,7 +1077,7 @@ version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a33c1b55807fbed163481b5ba66db4b2fa6cde694a5027be10fb724206c5897"
 dependencies = [
- "socket2",
+ "socket2 0.3.19",
  "winapi",
 ]
 
@@ -1106,23 +1107,6 @@ dependencies = [
 
 [[package]]
 name = "nalgebra"
-version = "0.25.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f413299f376cd2f0eb4f82798d656e18696e5b7f296567bf55478868bb723b3e"
-dependencies = [
- "approx",
- "generic-array",
- "matrixmultiply",
- "num-complex",
- "num-rational",
- "num-traits",
- "serde",
- "simba",
- "typenum",
-]
-
-[[package]]
-name = "nalgebra"
 version = "0.26.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "476d1d59fe02fe54c86356e91650cd892f392782a1cb9fc524ec84f7aa9e1d06"
@@ -1144,7 +1128,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "670361df1bc2399ee1ff50406a0d422587dd3bb0da596e1978fe8e05dabddf4f"
 dependencies = [
  "libc",
- "socket2",
+ "socket2 0.3.19",
 ]
 
 [[package]]
@@ -1289,7 +1273,7 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "either",
- "nalgebra 0.26.2",
+ "nalgebra",
  "num-derive",
  "num-traits",
  "rustc-hash",
@@ -1363,6 +1347,18 @@ dependencies = [
  "log",
  "wepoll-sys",
  "winapi",
+]
+
+[[package]]
+name = "pose-publisher"
+version = "0.1.0"
+source = "git+https://github.com/dmweis/rustviz?branch=main#9990ff2a3b91026149190e625492f8bd5421547f"
+dependencies = [
+ "clap",
+ "serde",
+ "serde_json",
+ "socket2 0.4.2",
+ "thiserror",
 ]
 
 [[package]]
@@ -1795,6 +1791,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "122e570113d28d773067fab24266b66753f6ea915758651696b6e35e49f88d6e"
 dependencies = [
  "cfg-if 1.0.0",
+ "libc",
+ "winapi",
+]
+
+[[package]]
+name = "socket2"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5dc90fe6c7be1a323296982db1836d1ea9e47b6839496dde9a541bc496df3516"
+dependencies = [
  "libc",
  "winapi",
 ]

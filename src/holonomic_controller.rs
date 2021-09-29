@@ -39,6 +39,15 @@ impl HolonomicWheelCommand {
         )
     }
 
+    pub fn from_move_command(move_command: &MoveCommand) -> HolonomicWheelCommand {
+        HolonomicWheelCommand::new(
+            move_command.forward - move_command.yaw - move_command.strafe,
+            move_command.forward + move_command.yaw + move_command.strafe,
+            move_command.forward - move_command.yaw + move_command.strafe,
+            move_command.forward + move_command.yaw - move_command.strafe,
+        )
+    }
+
     pub fn left_front(&self) -> f32 {
         self.left_front
     }
@@ -50,5 +59,22 @@ impl HolonomicWheelCommand {
     }
     pub fn right_rear(&self) -> f32 {
         self.right_rear
+    }
+}
+
+#[derive(Debug)]
+pub struct MoveCommand {
+    forward: f32,
+    strafe: f32,
+    yaw: f32,
+}
+
+impl MoveCommand {
+    pub fn new(forward: f32, strafe: f32, yaw: f32) -> Self {
+        Self {
+            forward,
+            strafe,
+            yaw,
+        }
     }
 }
