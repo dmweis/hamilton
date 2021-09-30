@@ -5,21 +5,25 @@ set -o nounset
 set -o pipefail
 set -o xtrace
 
+readonly targets="
+hamilton_controller
+hamilton_web_controller
+hamilton_web_remote
+vehicle_config_test
+hamilton_web_controller_ir_tracker
+lidar_driver
+"
+
 readonly TARGET_HOST=pi42.local
-readonly TARGET_1_PATH=/home/pi/hamilton_controller
-readonly TARGET_2_PATH=/home/pi/hamilton_web_controller
-readonly TARGET_3_PATH=/home/pi/hamilton_web_remote
-readonly TARGET_4_PATH=/home/pi/vehicle_config_test
 readonly TARGET_ARCH=armv7-unknown-linux-musleabihf
-readonly SOURCE_1_PATH=./target/${TARGET_ARCH}/release/hamilton_controller
-readonly SOURCE_2_PATH=./target/${TARGET_ARCH}/release/hamilton_web_controller
-readonly SOURCE_3_PATH=./target/${TARGET_ARCH}/release/hamilton_web_remote
-readonly SOURCE_4_PATH=./target/${TARGET_ARCH}/release/vehicle_config_test
+
+readonly TARGET_PATH=/home/pi/
+readonly SOURCE_PATH=./target/${TARGET_ARCH}/release/
 
 cargo build --release --target=${TARGET_ARCH} --no-default-features
-rsync -c ${SOURCE_1_PATH} pi@${TARGET_HOST}:${TARGET_1_PATH}
-rsync -c ${SOURCE_2_PATH} pi@${TARGET_HOST}:${TARGET_2_PATH}
-rsync -c ${SOURCE_3_PATH} pi@${TARGET_HOST}:${TARGET_3_PATH}
-rsync -c ${SOURCE_4_PATH} pi@${TARGET_HOST}:${TARGET_4_PATH}
-# uncomment to run after deploy
-# ssh -t ${TARGET_HOST} ${TARGET_PATH}
+
+for target in $targets; do
+  target_path="$TARGET_PATH$target"
+  source_path="$SOURCE_PATH$target"
+  rsync -c ${source_path} pi@${TARGET_HOST}:${target_path}
+done
