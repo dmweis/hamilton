@@ -122,7 +122,17 @@ async fn main() -> Result<()> {
                     let mut update = PoseClientUpdate::new();
 
                     let robot_target_vector = pose.rotation() * na::Vector2::new(0.1, 0.);
-                    update.add("robot", (pose.position().x, pose.position().y, 0.1));
+                    let robot_rotation =
+                        na::UnitQuaternion::from_euler_angles(0., 0., pose.rotation().angle())
+                            .coords;
+                    update
+                        .add("robot", (pose.position().x, pose.position().y, 0.1))
+                        .with_rotation((
+                            robot_rotation[0],
+                            robot_rotation[1],
+                            robot_rotation[2],
+                            robot_rotation[3],
+                        ));
                     update
                         .add(
                             "robot direction",
