@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 pub mod driver;
 pub mod holonomic_controller;
 pub mod ir_tracker_localiser;
