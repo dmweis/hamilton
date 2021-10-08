@@ -3,40 +3,6 @@ name = "hamilton"
 version = "0.1.0"
 authors = ["David Weis <dweis7@gmail.com>"]
 edition = "2018"
-default-run = "hamilton_controller"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-# I think these bin entiers don't actually have to be here anymore
-[[bin]]
-name = "hamilton_controller"
-
-[[bin]]
-name = "hamilton_guppy_controller"
-
-[[bin]]
-name = "vehicle_config_test"
-
-[[bin]]
-name = "localization_receiver"
-
-[[bin]]
-name = "hamilton_web_controller"
-
-[[bin]]
-name = "hamilton_web_remote"
-
-[[bin]]
-name = "ducky_follower"
-
-[[bin]]
-name = "ir_tracker_printer"
-
-[[bin]]
-name = "hamilton_web_controller_ir_tracker"
-
-[[bin]]
-name = "lidar_driver"
 
 [dependencies]
 tonic = "0.4"
