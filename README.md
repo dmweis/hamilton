@@ -5,7 +5,7 @@
 [![Rust-windows](https://github.com/dmweis/hamilton/workflows/Rust-windows/badge.svg)](https://github.com/dmweis/hamilton/actions)
 [![Private docs](https://github.com/dmweis/hamilton/workflows/Deploy%20Docs%20to%20GitHub%20Pages/badge.svg)](https://davidweis.dev/hamilton/hamilton/index.html)
 
-Mecanum wheeled robot
+![Hamilton robot with a lidar cover with googly eyes](/images/hamilton_readme_image.jpg)
 
 [Read more here](https://davidweis.dev/hamilton)
 
@@ -42,3 +42,8 @@ sudo apt install gcc-arm-linux-gnueabihf
 Then compile for arm with `cargo build --no-default-features --target=armv7-unknown-linux-musleabihf`
 
 The [deploy script](./deploy) will try to build and copy the binaries to the right place. But they both take assumptions about hostnames and paths because I am lazy.
+
+## Remote controller
+
+Don't look at this one. This is just a hacked together web interface.
+I don't know how to build web applications
