@@ -35,6 +35,8 @@ impl IrTrackers {
     fn points_in_screen_space(&self) -> Vec<na::Point2<f32>> {
         let mut new_points = Vec::with_capacity(self.point_count as usize);
         for point in &self.points {
+            // TODO (David): This is a bug. The camera image is not square
+            // so this can't be 0 -> 1 for both dimensions
             let new_x = linear_map(point.x, 0., self.width as f32, 0., 1.);
             let new_y = linear_map(point.y, 0., self.height as f32, 0., 1.);
             new_points.push(na::Point2::new(new_x, new_y));
