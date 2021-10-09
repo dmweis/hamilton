@@ -84,19 +84,21 @@ async fn main() -> Result<()> {
 
     while running.load(Ordering::Acquire) {
         tokio::time::sleep(Duration::from_millis(100)).await;
-        if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
+        if let Some(canvas_touch) = controller_state.try_receive_canvas_touch().await? {
             let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
             let target_pose = Pose2d::from_na(target, heading);
             navigation_controller.set_target(target_pose);
         }
 
-        let (gamepad_command, time) = controller_state.get_last_gamepad_command();
-        let move_command = MoveCommand::new(
-            gamepad_command.left_x,
-            gamepad_command.left_y,
-            gamepad_command.right_y,
-        );
-        navigation_controller.set_user_command(move_command, time);
+        if let Some((gamepad_command, time)) = controller_state.get_last_input_with_time().await {
+            let move_command = MoveCommand::new(
+                gamepad_command.left_x,
+                gamepad_command.left_y,
+                gamepad_command.right_y,
+            );
+            navigation_controller.set_user_command(move_command, time);
+        }
+
         navigation_controller.tick().await?;
     }
     Ok(())

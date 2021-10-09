@@ -76,6 +76,10 @@ impl ControllerState {
             Some(command)
         }
     }
+
+    pub async fn get_last_input_with_time(&self) -> Option<(GamepadCommand, Instant)> {
+        Some(self.last_gamepad_input.lock().await.clone())
+    }
 }
 
 #[derive(Debug, Serialize, Clone)]

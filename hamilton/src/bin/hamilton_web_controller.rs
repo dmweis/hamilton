@@ -114,7 +114,7 @@ async fn main() -> Result<()> {
                     // set start position
                     navigation_controller.update_current_pose(Pose2d::from_na(position, yaw));
 
-                    if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
+                    if let Some(canvas_touch) = controller_state.try_receive_canvas_touch().await? {
                         let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
                         navigation_controller.update_target_pose(Pose2d::from_na(target, heading));
                     }
