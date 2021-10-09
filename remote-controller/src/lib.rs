@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 use futures::{SinkExt, StreamExt};
 use include_dir::{include_dir, Dir};
 use serde::{Deserialize, Serialize};

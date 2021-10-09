@@ -42,3 +42,8 @@ sudo apt install gcc-arm-linux-gnueabihf
 Then compile for arm with `cargo build --no-default-features --target=armv7-unknown-linux-musleabihf`
 
 The [deploy script](./deploy) will try to build and copy the binaries to the right place. But they both take assumptions about hostnames and paths because I am lazy.
+
+## Remote controller
+
+Don't look at this one. This is just a hacked together web interface.
+I don't know how to build web applications
