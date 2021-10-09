@@ -3,12 +3,12 @@ use nalgebra as na;
 use std::fmt;
 
 #[derive(Debug, Clone)]
-pub struct Pose {
+pub struct Pose2d {
     position: na::Point2<f32>,
     rotation: na::Rotation2<f32>,
 }
 
-impl Pose {
+impl Pose2d {
     pub fn from_na(position: na::Point2<f32>, rotation: na::Rotation2<f32>) -> Self {
         Self { position, rotation }
     }
@@ -29,7 +29,7 @@ impl Pose {
     }
 }
 
-impl fmt::Display for Pose {
+impl fmt::Display for Pose2d {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -43,8 +43,8 @@ impl fmt::Display for Pose {
 
 #[derive(Debug, Default)]
 pub struct NavigationController {
-    current_pose: Option<Pose>,
-    target_pose: Option<Pose>,
+    current_pose: Option<Pose2d>,
+    target_pose: Option<Pose2d>,
 }
 
 impl NavigationController {
@@ -52,7 +52,7 @@ impl NavigationController {
         self.current_pose.is_some()
     }
 
-    pub fn update_current_pose(&mut self, pose: Pose) {
+    pub fn update_current_pose(&mut self, pose: Pose2d) {
         self.current_pose = Some(pose);
     }
 
@@ -60,7 +60,7 @@ impl NavigationController {
         self.current_pose = None;
     }
 
-    pub fn update_target_pose(&mut self, pose: Pose) {
+    pub fn update_target_pose(&mut self, pose: Pose2d) {
         self.target_pose = Some(pose);
     }
 
@@ -86,7 +86,7 @@ const TRANSLATION_GAIN: f32 = 10.0;
 const CLAMP: f32 = 0.5;
 const DEAD_BAND: f32 = 0.15;
 
-fn calculate_drive_gains(current: &Pose, target: &Pose) -> MoveCommand {
+fn calculate_drive_gains(current: &Pose2d, target: &Pose2d) -> MoveCommand {
     let translation = current.position - target.position;
     let gain_vector = current.rotation.inverse() * translation;
 
@@ -115,7 +115,7 @@ mod tests {
 
     #[test]
     fn test_creation_with_into() {
-        let _pose = Pose::new((10.0, 10.0), 10.0);
+        let _pose = Pose2d::new((10.0, 10.0), 10.0);
     }
 
     /// these tests are kind of testing nalgebra.

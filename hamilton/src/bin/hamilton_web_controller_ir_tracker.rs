@@ -4,7 +4,7 @@ use hamilton::{
     driver::{BodyConfig, DriverType, HamiltonDcDriver, HamiltonDriver, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
     map::Map,
-    navigation::{NavigationController, Pose},
+    navigation::{NavigationController, Pose2d},
 };
 use nalgebra as na;
 use pose_publisher::{pose::Color, PoseClientUpdate, PosePublisher};
@@ -159,7 +159,7 @@ async fn main() -> Result<()> {
                             )
                             .with_color(Color::Green);
 
-                        navigation_controller.update_target_pose(Pose::from_na(target, heading));
+                        navigation_controller.update_target_pose(Pose2d::from_na(target, heading));
                     }
 
                     if let Some(move_command) = navigation_controller.calculate_drive() {

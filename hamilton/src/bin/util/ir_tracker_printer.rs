@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::Clap;
 use hamilton::{
     map::Map,
-    navigation::{NavigationController, Pose},
+    navigation::{NavigationController, Pose2d},
 };
 use nalgebra as na;
 use pose_publisher::{pose::Color, PoseClientUpdate, PosePublisher};
@@ -72,7 +72,7 @@ async fn main() -> Result<()> {
                 )
                 .with_color(Color::Red);
 
-            navigation_controller.update_target_pose(Pose::from_na(target, heading));
+            navigation_controller.update_target_pose(Pose2d::from_na(target, heading));
         }
         pose_publisher.publish(update)?;
 

@@ -4,7 +4,7 @@ use hamilton::{
     driver::{BodyConfig, HamiltonDriver, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
     map::Map,
-    navigation::{NavigationController, Pose},
+    navigation::{NavigationController, Pose2d},
 };
 use nalgebra as na;
 use remote_controller::{start_remote_controller_server_with_map, ActionList, AreaSize};
@@ -113,14 +113,16 @@ async fn main() -> Result<()> {
             if let Some(message) = message {
                 if let Some((position, yaw)) = message.get_tracker_pose() {
                     // set start position
-                    navigation_controller.update_current_pose(Pose::from_na(position, yaw));
+                    navigation_controller.update_current_pose(Pose2d::from_na(position, yaw));
 
                     if let Some(controller) = message.get_any_controller_pose() {
                         let heading = (controller.y - position.y).atan2(controller.x - position.x);
                         let transform = (position - controller).normalize() * 0.4;
                         let target = controller + transform;
-                        navigation_controller
-                            .update_target_pose(Pose::from_na(target, na::Rotation2::new(heading)));
+                        navigation_controller.update_target_pose(Pose2d::from_na(
+                            target,
+                            na::Rotation2::new(heading),
+                        ));
                     }
 
                     if let Some(move_command) = navigation_controller.calculate_drive() {

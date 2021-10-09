@@ -1,4 +1,4 @@
-use crate::navigation::Pose;
+use crate::navigation::Pose2d;
 use anyhow::{anyhow, Result};
 use na::distance;
 use nalgebra as na;
@@ -44,7 +44,7 @@ impl IrTrackers {
         new_points
     }
 
-    pub fn find_tracker_pose(&self) -> Option<Pose> {
+    pub fn find_tracker_pose(&self) -> Option<Pose2d> {
         if self.point_count < 4 {
             warn!("Less than 4 points visible");
             return None;
@@ -96,7 +96,7 @@ impl IrTrackers {
             //     na::Vector2::new(translation.magnitude() * 1.5, 0.0);
 
             let robot_pose = triangle_center + rotation * triangle_to_robot_translation;
-            let pose = Pose::from_na(
+            let pose = Pose2d::from_na(
                 na::Point2::new(1.0 - robot_pose.y, 1.0 - robot_pose.x),
                 rotation,
             );

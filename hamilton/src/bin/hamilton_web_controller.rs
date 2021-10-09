@@ -4,7 +4,7 @@ use hamilton::{
     driver::{BodyConfig, HamiltonDriver, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
     map::Map,
-    navigation::{NavigationController, Pose},
+    navigation::{NavigationController, Pose2d},
 };
 use remote_controller::{start_remote_controller_server_with_map, ActionList, AreaSize};
 use std::{
@@ -112,11 +112,11 @@ async fn main() -> Result<()> {
             if let Some(message) = message {
                 if let Some((position, yaw)) = message.get_tracker_pose() {
                     // set start position
-                    navigation_controller.update_current_pose(Pose::from_na(position, yaw));
+                    navigation_controller.update_current_pose(Pose2d::from_na(position, yaw));
 
                     if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
                         let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
-                        navigation_controller.update_target_pose(Pose::from_na(target, heading));
+                        navigation_controller.update_target_pose(Pose2d::from_na(target, heading));
                     }
 
                     if let Some(move_command) = navigation_controller.calculate_drive() {
