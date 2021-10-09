@@ -5,7 +5,7 @@ Description=hamilton
 Type=simple
 Restart=on-failure
 RestartSec=5s
-ExecStart=/home/$(whoami)/.cargo/bin/hamilton /dev/hamilton_motors --config /home/pi/.config/hamiltoncontroller/wheel_config.json
+ExecStart=/home/$(whoami)/.cargo/bin/hamilton_controller --body_config /home/pi/.config/hamiltoncontroller/wheel_config.json
 [Install]
 WantedBy=default.target
 EOT
