@@ -1,6 +1,11 @@
+use crate::driver::HamiltonDriver;
 use crate::holonomic_controller::{HolonomicWheelCommand, MoveCommand};
+use crate::localisation::LocalisationManager;
+use anyhow::Result;
 use nalgebra as na;
 use std::fmt;
+use std::time::{Duration, Instant};
+use tracing::warn;
 
 #[derive(Debug, Clone)]
 pub struct Pose2d {
@@ -79,6 +84,63 @@ impl OldNavigationController {
     pub fn calculate_drive(&self) -> Option<HolonomicWheelCommand> {
         self.calculate_gains()
             .map(|move_command| HolonomicWheelCommand::from_move_command(&move_command))
+    }
+}
+
+static USER_COMMAND_TIMEOUT: Duration = Duration::from_secs(1);
+
+pub struct NavigationController {
+    driver: Box<dyn HamiltonDriver>,
+    localiser: LocalisationManager,
+    target: Option<Pose2d>,
+    last_user_command: MoveCommand,
+    last_user_command_time: Instant,
+}
+
+impl NavigationController {
+    pub fn new(driver: Box<dyn HamiltonDriver>, localiser: LocalisationManager) -> Self {
+        Self {
+            driver,
+            localiser,
+            target: None,
+            last_user_command: MoveCommand::new(0., 0., 0.),
+            last_user_command_time: Instant::now(),
+        }
+    }
+
+    pub fn set_target(&mut self, target: Pose2d) {
+        self.target = Some(target);
+    }
+
+    pub fn clear_target(&mut self) {
+        self.target = None;
+    }
+
+    pub fn issue_user_command(&mut self, command: MoveCommand) {
+        self.last_user_command = command;
+        self.last_user_command_time = Instant::now();
+    }
+
+    pub async fn tick(&mut self) -> Result<()> {
+        if self.last_user_command_time.elapsed() < USER_COMMAND_TIMEOUT {
+            self.driver
+                .send(HolonomicWheelCommand::from_move_command(
+                    &self.last_user_command,
+                ))
+                .await?;
+            return Ok(());
+        }
+        if let Some(target) = &self.target {
+            if let Some(pose) = self.localiser.get_latest_pose().await? {
+                let command = calculate_drive_gains(&pose, target);
+                self.driver
+                    .send(HolonomicWheelCommand::from_move_command(&command))
+                    .await?;
+            } else {
+                warn!("Not localised");
+            }
+        }
+        Ok(())
     }
 }
 
