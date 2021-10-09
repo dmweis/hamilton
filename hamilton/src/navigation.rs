@@ -13,8 +13,7 @@ impl Pose {
         Self { position, rotation }
     }
 
-    pub fn new(position: (f32, f32), rotation: f32) -> Self {
-        let (x, y) = position;
+    pub fn new((x, y): (f32, f32), rotation: f32) -> Self {
         Self {
             position: na::Point2::new(x, y),
             rotation: na::Rotation2::new(rotation),
