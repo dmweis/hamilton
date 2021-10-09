@@ -135,6 +135,7 @@ impl NavigationController {
 
     pub async fn tick(&mut self) -> Result<()> {
         if self.last_user_command_time.elapsed() < USER_COMMAND_TIMEOUT {
+            self.clear_target();
             self.driver
                 .send(HolonomicWheelCommand::from_move_command(
                     &self.last_user_command,
