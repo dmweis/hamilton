@@ -12,8 +12,8 @@ async fn main() -> Result<()> {
         .init();
 
     let action_list = ActionList::new(vec![
-        Action::new(String::from("save"), String::from("Save current position")),
-        Action::new(String::from("load"), String::from("Load current position")),
+        Action::new("save", "Save current position"),
+        Action::new("load", "Load current position"),
     ]);
 
     let controller_handle = remote_controller::start_remote_controller_server_with_map(

@@ -10,7 +10,7 @@ use hamilton::{
     rviz_client::RvizClient,
 };
 use nalgebra as na;
-use remote_controller::{start_remote_controller_server_with_map, ActionList, AreaSize};
+use remote_controller::{start_remote_controller_server_with_map, Action, ActionList, AreaSize};
 use std::{
     net::SocketAddrV4,
     sync::{
@@ -34,10 +34,12 @@ struct Args {
     lidar_port: String,
     #[clap(long = "body_config", about = "Config path")]
     config: Option<String>,
-    #[clap(short, long, default_value = "239.0.0.22:7071")]
+    #[clap(long, default_value = "239.0.0.22:7071")]
     localisation_address: SocketAddrV4,
-    #[clap(short, long, default_value = "239.0.0.22:7072")]
+    #[clap(long, default_value = "239.0.0.22:7072")]
     pose_pub_address: SocketAddrV4,
+    #[clap(long, default_value = "239.0.0.22:7075")]
+    point_cloud_addr: SocketAddrV4,
 }
 
 #[tokio::main]
@@ -56,8 +58,8 @@ async fn main() -> Result<()> {
         BodyConfig::load_from_default()?
     };
 
-    let mut lidar_driver = Lidar::open(&args.lidar_port)?;
-    lidar_driver.stop_motor()?;
+    let mut lidar_driver = Lidar::open(args.lidar_port, args.point_cloud_addr)?;
+    lidar_driver.stop_motor();
 
     let driver = hamilton_driver_from_config(&args.motor_port, body_config).await?;
     let localiser =
@@ -68,10 +70,16 @@ async fn main() -> Result<()> {
 
     let map = Map::new(na::Vector2::new(1., 1.), na::Vector2::new(0., 0.));
     let (area_height, area_width) = map.get_size();
+
+    let actions = ActionList::new(vec![
+        Action::new("start_spin", "Start spinning lidar"),
+        Action::new("stop_spin", "Stop spinning lidar"),
+    ]);
+
     let controller_state = start_remote_controller_server_with_map(
         ([0, 0, 0, 0], 8080),
         AreaSize::new(area_width, area_height),
-        ActionList::default(),
+        actions,
     );
 
     let running = Arc::new(AtomicBool::new(true));
@@ -97,6 +105,14 @@ async fn main() -> Result<()> {
                 gamepad_command.right_y,
             );
             navigation_controller.set_user_command(move_command, time);
+        }
+
+        if let Some(action) = controller_state.try_receive_action().await? {
+            match action.id() {
+                "start_spin" => lidar_driver.start_motor(),
+                "stop_spin" => lidar_driver.stop_motor(),
+                _ => error!("Unknown action {:?}", action),
+            }
         }
 
         navigation_controller.tick().await?;

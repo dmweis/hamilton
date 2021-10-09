@@ -89,8 +89,11 @@ pub struct Action {
 }
 
 impl Action {
-    pub fn new(id: String, description: String) -> Self {
-        Self { id, description }
+    pub fn new(id: &str, description: &str) -> Self {
+        Self {
+            id: id.to_owned(),
+            description: description.to_owned(),
+        }
     }
 }
 
@@ -108,6 +111,12 @@ impl ActionList {
 #[derive(Debug, Deserialize)]
 pub struct ActionIdWrapper {
     id: String,
+}
+
+impl ActionIdWrapper {
+    pub fn id(&self) -> &str {
+        &self.id
+    }
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
