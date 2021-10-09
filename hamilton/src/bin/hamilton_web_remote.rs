@@ -87,7 +87,7 @@ async fn main() -> Result<()> {
     })?;
 
     while running.load(Ordering::Acquire) {
-        let gamepad_command = controller_state.get_last_gamepad_command();
+        let (gamepad_command, _) = controller_state.get_last_gamepad_command();
         let move_command = HolonomicWheelCommand::from_move(
             gamepad_command.left_x,
             gamepad_command.left_y,

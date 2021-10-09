@@ -12,6 +12,7 @@ hamilton_web_remote
 vehicle_config_test
 hamilton_web_controller_ir_tracker
 lidar_driver
+hamilton_controller
 "
 
 readonly TARGET_HOST=camerapi.local

@@ -7,7 +7,7 @@ use std::{
         mpsc::{channel, Receiver, Sender, TryRecvError},
         Arc, Mutex,
     },
-    time::Duration,
+    time::{Duration, Instant},
 };
 use tokio::time::{sleep, timeout};
 use tracing::*;
@@ -84,7 +84,7 @@ pub struct GamepadCommand {
 }
 
 // Why is this double mutexed?
-type SharedControllerState = Arc<Mutex<GamepadCommand>>;
+type SharedControllerState = Arc<Mutex<(GamepadCommand, Instant)>>;
 type SharedTouchEvent = Arc<Mutex<Option<CanvasTouch>>>;
 
 async fn handle_websocket(ws: WebSocket, controller_state: SharedControllerState) {
@@ -106,7 +106,7 @@ async fn handle_websocket(ws: WebSocket, controller_state: SharedControllerState
             Ok(msg) => {
                 if let Ok(text) = msg.to_str() {
                     if let Ok(command) = serde_json::from_str(text) {
-                        *controller_state.lock().unwrap() = command;
+                        *controller_state.lock().unwrap() = (command, Instant::now());
                     } else {
                         error!("Failed to parse json {}", text);
                     }
@@ -149,7 +149,7 @@ impl StateHandle {
         }
     }
 
-    pub fn get_last_gamepad_command(&self) -> GamepadCommand {
+    pub fn get_last_gamepad_command(&self) -> (GamepadCommand, Instant) {
         self.controller_state.lock().unwrap().clone()
     }
 
@@ -178,7 +178,7 @@ pub fn start_remote_controller_server_with_map(
     actions: ActionList,
 ) -> StateHandle {
     let address = address.into();
-    let controller_state = SharedControllerState::default();
+    let controller_state = Arc::new(Mutex::new((GamepadCommand::default(), Instant::now())));
     let controller_state_clone = Arc::clone(&controller_state);
     let shared_controller_state = warp::any().map(move || controller_state_clone.clone());
 

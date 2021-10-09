@@ -128,6 +128,11 @@ impl NavigationController {
         self.last_user_command_time = Instant::now();
     }
 
+    pub fn set_user_command(&mut self, command: MoveCommand, time: Instant) {
+        self.last_user_command = command;
+        self.last_user_command_time = time;
+    }
+
     pub async fn tick(&mut self) -> Result<()> {
         if self.last_user_command_time.elapsed() < USER_COMMAND_TIMEOUT {
             self.driver
