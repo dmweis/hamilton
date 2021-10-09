@@ -87,13 +87,20 @@ async fn main() -> Result<()> {
     })?;
 
     while running.load(Ordering::Acquire) {
-        let (gamepad_command, _) = controller_state.get_last_gamepad_command();
-        let move_command = HolonomicWheelCommand::from_move(
-            gamepad_command.left_x,
-            gamepad_command.left_y,
-            gamepad_command.right_y,
-        );
-        cloned_driver.lock().await.send(move_command).await?;
+        if let Some(gamepad_command) = controller_state.get_last_input().await {
+            let move_command = HolonomicWheelCommand::from_move(
+                gamepad_command.left_x,
+                gamepad_command.left_y,
+                gamepad_command.right_y,
+            );
+            cloned_driver.lock().await.send(move_command).await?;
+        } else {
+            cloned_driver
+                .lock()
+                .await
+                .send(HolonomicWheelCommand::stopped())
+                .await?;
+        }
         tokio::time::sleep(Duration::from_millis(100)).await;
     }
 

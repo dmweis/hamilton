@@ -58,7 +58,7 @@ async fn main() -> Result<()> {
             println!("Failed to find points");
         }
 
-        if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
+        if let Some(canvas_touch) = controller_state.try_receive_canvas_touch().await? {
             let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
             update
                 .add("target", (target.x, target.y, 0.1))

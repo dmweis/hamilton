@@ -147,7 +147,7 @@ async fn main() -> Result<()> {
                     // set start position
                     navigation_controller.update_current_pose(pose.clone());
 
-                    if let Some(canvas_touch) = controller_state.get_latest_canvas_touch() {
+                    if let Some(canvas_touch) = controller_state.try_receive_canvas_touch().await? {
                         let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
 
                         update.add("target", (target.x, target.y, 0.1));

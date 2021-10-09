@@ -57,6 +57,9 @@ function mountTouchScreenControls(connection, deadzone) {
         const current = axisToCombined(moveJoystickData, rotationJoystickData);
         if (!axisEquals(current, lastState)) {
             lastState = deepCopy(current);
+            current.should_resend = function () {
+                return this.lx != 0 || this.ly != 0 || this.rx != 0 || this.ry != 0;
+            }
             connection.send(current);
         }
     };
