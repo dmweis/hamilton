@@ -1,6 +1,7 @@
 use crate::driver::HamiltonDriver;
 use crate::holonomic_controller::{HolonomicWheelCommand, MoveCommand};
 use crate::localisation::LocalisationManager;
+use crate::rviz_client::RvizClient;
 use anyhow::Result;
 use nalgebra as na;
 use std::fmt;
@@ -95,16 +96,22 @@ pub struct NavigationController {
     target: Option<Pose2d>,
     last_user_command: MoveCommand,
     last_user_command_time: Instant,
+    rviz_client: RvizClient,
 }
 
 impl NavigationController {
-    pub fn new(driver: Box<dyn HamiltonDriver>, localiser: LocalisationManager) -> Self {
+    pub fn new(
+        driver: Box<dyn HamiltonDriver>,
+        localiser: LocalisationManager,
+        rviz_client: RvizClient,
+    ) -> Self {
         Self {
             driver,
             localiser,
             target: None,
             last_user_command: MoveCommand::new(0., 0., 0.),
             last_user_command_time: Instant::now(),
+            rviz_client,
         }
     }
 
@@ -128,10 +135,18 @@ impl NavigationController {
                     &self.last_user_command,
                 ))
                 .await?;
+            // try to publish robot pose even when not using localisation
+            if let Some(pose) = self.localiser.get_latest_pose().await? {
+                self.rviz_client.set_robot_pose(pose);
+                self.rviz_client.publish()?;
+            }
             return Ok(());
         }
         if let Some(target) = &self.target {
             if let Some(pose) = self.localiser.get_latest_pose().await? {
+                self.rviz_client.set_robot_pose(pose.clone());
+                self.rviz_client.set_target_pose(target.clone());
+                self.rviz_client.publish()?;
                 let command = calculate_drive_gains(&pose, target);
                 self.driver
                     .send(HolonomicWheelCommand::from_move_command(&command))
