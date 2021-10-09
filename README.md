@@ -5,7 +5,7 @@
 [![Rust-windows](https://github.com/dmweis/hamilton/workflows/Rust-windows/badge.svg)](https://github.com/dmweis/hamilton/actions)
 [![Private docs](https://github.com/dmweis/hamilton/workflows/Deploy%20Docs%20to%20GitHub%20Pages/badge.svg)](https://davidweis.dev/hamilton/hamilton/index.html)
 
-Mecanum wheeled robot
+![Hamilton robot with a lidar cover with googly eyes](/images/hamilton_readme_image.jpg)
 
 [Read more here](https://davidweis.dev/hamilton)
 
