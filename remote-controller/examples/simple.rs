@@ -1,10 +1,11 @@
+use anyhow::Result;
 use remote_controller::{Action, ActionList, AreaSize};
 use std::time::Duration;
 use tokio::time::sleep;
 use tracing_subscriber::filter::LevelFilter;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .pretty()
         .with_max_level(LevelFilter::INFO)
@@ -15,7 +16,7 @@ async fn main() {
         Action::new(String::from("load"), String::from("Load current position")),
     ]);
 
-    let mut state_handle = remote_controller::start_remote_controller_server_with_map(
+    let controller_handle = remote_controller::start_remote_controller_server_with_map(
         ([0, 0, 0, 0], 8080),
         AreaSize::new(1.0, 2.0),
         action_list,
@@ -23,10 +24,14 @@ async fn main() {
 
     loop {
         sleep(Duration::from_millis(20)).await;
-        println!("gamepad: {:?}", state_handle.get_last_gamepad_command());
-        println!("touch: {:?}", state_handle.get_latest_canvas_touch());
-        if let Some(message) = state_handle.check_new_actions().unwrap() {
-            println!("Action received {}", message);
+        if let Some(gamepad) = controller_handle.get_last_input().await {
+            println!("gamepad: {:?}", gamepad);
+        }
+        if let Some(touch) = controller_handle.try_receive_canvas_touch().await? {
+            println!("touch: {:?}", touch);
+        }
+        if let Some(action) = controller_handle.try_receive_action().await? {
+            println!("Action received: {:?}", action);
         }
     }
 }
