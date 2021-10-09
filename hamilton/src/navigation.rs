@@ -142,19 +142,19 @@ impl NavigationController {
             }
             return Ok(());
         }
-        if let Some(target) = &self.target {
-            if let Some(pose) = self.localiser.get_latest_pose().await? {
-                self.rviz_client.set_robot_pose(pose.clone());
+        if let Some(pose) = self.localiser.get_latest_pose().await? {
+            self.rviz_client.set_robot_pose(pose.clone());
+            if let Some(target) = &self.target {
                 self.rviz_client.set_target_pose(target.clone());
-                self.rviz_client.publish()?;
                 let command = calculate_drive_gains(&pose, target);
                 self.driver
                     .send(HolonomicWheelCommand::from_move_command(&command))
                     .await?;
-                return Ok(());
-            } else {
-                warn!("Not localised");
             }
+            self.rviz_client.publish()?;
+            return Ok(());
+        } else {
+            warn!("Not localised");
         }
         self.driver.send(HolonomicWheelCommand::stopped()).await?;
         Ok(())
