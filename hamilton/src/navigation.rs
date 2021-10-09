@@ -136,10 +136,12 @@ impl NavigationController {
                 self.driver
                     .send(HolonomicWheelCommand::from_move_command(&command))
                     .await?;
+                return Ok(());
             } else {
                 warn!("Not localised");
             }
         }
+        self.driver.send(HolonomicWheelCommand::stopped()).await?;
         Ok(())
     }
 }

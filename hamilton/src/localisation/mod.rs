@@ -16,7 +16,7 @@ pub enum LocaliserType {
     OpenVr,
 }
 
-static LOCALISATION_TIMEOUT: Duration = Duration::from_secs(1);
+static LOCALISATION_TIMEOUT: Duration = Duration::from_millis(500);
 
 pub struct LocalisationManager {
     localisation_receiver: Receiver<IrTrackers>,

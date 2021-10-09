@@ -1,8 +1,6 @@
 pub mod hamilton_dc_driver;
 pub mod hamilton_lss_driver;
 
-use std::{fs::create_dir_all, path::Path};
-
 use crate::holonomic_controller::HolonomicWheelCommand;
 use anyhow::Result;
 use async_trait::async_trait;
@@ -11,6 +9,8 @@ pub use hamilton_dc_driver::HamiltonDcDriver;
 pub use hamilton_lss_driver::HamiltonLssDriver;
 use lss_driver::LedColor;
 use serde::{Deserialize, Serialize};
+use std::{fs::create_dir_all, path::Path, sync::Arc};
+use tokio::sync::Mutex;
 
 #[derive(Debug)]
 pub struct MotorCommand {
@@ -39,6 +39,18 @@ pub trait HamiltonDriver: Send {
     async fn set_color(&mut self, color: LedColor) -> Result<Option<()>>;
     fn set_halt_mode(&mut self, on: bool);
     fn halt_mode(&self) -> bool;
+}
+
+pub async fn hamilton_driver_from_config(
+    port: &str,
+    config: BodyConfig,
+) -> Result<Box<dyn HamiltonDriver>> {
+    if let DriverType::LSS = config.driver_type() {
+        let lss_driver = Arc::new(Mutex::new(lss_driver::LSSDriver::new(port)?));
+        Ok(Box::new(HamiltonLssDriver::new(lss_driver, config).await?))
+    } else {
+        Ok(Box::new(HamiltonDcDriver::new(port, config)?))
+    }
 }
 
 trait Clampable {
