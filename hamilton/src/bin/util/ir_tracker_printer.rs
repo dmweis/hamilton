@@ -33,7 +33,8 @@ async fn main() -> Result<()> {
     let mut navigation_controller = NavigationController::default();
 
     let mut localization_rx =
-        hamilton::ir_tracker_localiser::create_localization_subscriber(args.address).await?;
+        hamilton::localisation::ir_tracker_localiser::create_localization_subscriber(args.address)
+            .await?;
     while let Some(message) = localization_rx.recv().await {
         let mut update = PoseClientUpdate::new();
 

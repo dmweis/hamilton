@@ -104,7 +104,8 @@ async fn main() -> Result<()> {
     })?;
 
     let mut localization_rx =
-        hamilton::ir_tracker_localiser::create_localization_subscriber(args.address).await?;
+        hamilton::localisation::ir_tracker_localiser::create_localization_subscriber(args.address)
+            .await?;
 
     // this loop is getting super convoluted
     // refactor
