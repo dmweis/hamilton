@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 warp = "0.3"
 tokio = { version = "1", features = ["time"] }
-log = "0.4"
+tracing = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 futures = "0.3"
@@ -18,8 +18,8 @@ include_dir = "0.6.0"
 anyhow = "1.0"
 
 [dev-dependencies]
-env_logger = "0.8"
 tokio = { version = "1", features = ["full"] }
+tracing-subscriber = "0.2"
 
 [build-dependencies]
 ureq = "2.2"

@@ -1,6 +1,5 @@
 use futures::{SinkExt, StreamExt};
 use include_dir::{include_dir, Dir};
-use log::*;
 use serde::{Deserialize, Serialize};
 use std::{
     sync::{
@@ -10,6 +9,7 @@ use std::{
     time::Duration,
 };
 use tokio::time::{sleep, timeout};
+use tracing::*;
 use warp::{
     filters::BoxedFilter,
     hyper::StatusCode,

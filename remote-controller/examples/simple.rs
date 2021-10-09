@@ -1,11 +1,14 @@
 use remote_controller::{Action, ActionList, AreaSize};
 use std::time::Duration;
 use tokio::time::sleep;
+use tracing_subscriber::filter::LevelFilter;
 
 #[tokio::main]
 async fn main() {
-    std::env::set_var("RUST_LOG", "info");
-    env_logger::init();
+    tracing_subscriber::fmt()
+        .pretty()
+        .with_max_level(LevelFilter::INFO)
+        .init();
 
     let action_list = ActionList::new(vec![
         Action::new(String::from("save"), String::from("Save current position")),
