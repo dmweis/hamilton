@@ -14,7 +14,13 @@ class Debouncer {
     interval_event() {
         if (this.last_written) {
             this.connection.send(JSON.stringify(this.last_written));
-            this.last_written = null;
+            if (this.last_written.should_resend) {
+                if (!this.last_written.should_resend()) {
+                    this.last_written = null;
+                } 
+            } else {
+                this.last_written = null;
+            }
         } else {
             clearInterval(this.interval_id);
             this.interval_id = null;

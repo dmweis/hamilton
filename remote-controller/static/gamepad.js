@@ -31,7 +31,10 @@ function setGamepadWatchdog(connection, deadzone) {
                 lx: -gamepadData.lx,
                 ly: -gamepadData.ly,
                 rx: -gamepadData.rx,
-                ry: -gamepadData.ry
+                ry: -gamepadData.ry,
+                should_resend: function () {
+                    return this.lx != 0 || this.ly != 0 || this.rx != 0 || this.ry != 0;
+                }
             };
             connection.send(gamepadMessage);
         }
