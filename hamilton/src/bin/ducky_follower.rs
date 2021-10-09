@@ -4,7 +4,7 @@ use hamilton::{
     driver::{BodyConfig, HamiltonDriver, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
     map::Map,
-    navigation::{NavigationController, Pose2d},
+    navigation::{OldNavigationController, Pose2d},
 };
 use nalgebra as na;
 use remote_controller::{start_remote_controller_server_with_map, ActionList, AreaSize};
@@ -52,7 +52,7 @@ async fn main() -> Result<()> {
     };
 
     let map = Map::included_room();
-    let mut navigation_controller = NavigationController::default();
+    let mut navigation_controller = OldNavigationController::default();
 
     let lss_driver = Arc::new(Mutex::new(lss_driver::LSSDriver::new(&args.port)?));
     let hamilton_driver = HamiltonLssDriver::new(lss_driver, body_config).await?;

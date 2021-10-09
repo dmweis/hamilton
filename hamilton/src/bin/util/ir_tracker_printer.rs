@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::Clap;
 use hamilton::{
     map::Map,
-    navigation::{NavigationController, Pose2d},
+    navigation::{OldNavigationController, Pose2d},
 };
 use nalgebra as na;
 use pose_publisher::{pose::Color, PoseClientUpdate, PosePublisher};
@@ -30,7 +30,7 @@ async fn main() -> Result<()> {
         ActionList::default(),
     );
     let pose_publisher = PosePublisher::new(args.pose_pub_address)?;
-    let mut navigation_controller = NavigationController::default();
+    let mut navigation_controller = OldNavigationController::default();
 
     let mut localization_rx =
         hamilton::localisation::ir_tracker_localiser::create_localization_subscriber(args.address)

@@ -42,12 +42,12 @@ impl fmt::Display for Pose2d {
 }
 
 #[derive(Debug, Default)]
-pub struct NavigationController {
+pub struct OldNavigationController {
     current_pose: Option<Pose2d>,
     target_pose: Option<Pose2d>,
 }
 
-impl NavigationController {
+impl OldNavigationController {
     pub fn localized(&self) -> bool {
         self.current_pose.is_some()
     }

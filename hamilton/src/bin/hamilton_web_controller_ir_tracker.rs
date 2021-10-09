@@ -4,7 +4,7 @@ use hamilton::{
     driver::{BodyConfig, DriverType, HamiltonDcDriver, HamiltonDriver, HamiltonLssDriver},
     holonomic_controller::HolonomicWheelCommand,
     map::Map,
-    navigation::{NavigationController, Pose2d},
+    navigation::{OldNavigationController, Pose2d},
 };
 use nalgebra as na;
 use pose_publisher::{pose::Color, PoseClientUpdate, PosePublisher};
@@ -55,7 +55,7 @@ async fn main() -> Result<()> {
     };
 
     let map = Map::new(na::Vector2::new(1., 1.), na::Vector2::new(0., 0.));
-    let mut navigation_controller = NavigationController::default();
+    let mut navigation_controller = OldNavigationController::default();
 
     let pose_publisher = PosePublisher::new(args.pose_pub_address)?;
 
