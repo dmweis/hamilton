@@ -10,7 +10,6 @@ use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::time::sleep;
 use tokio::{self};
-use tonic::Status;
 use tracing::*;
 use tracing_subscriber::filter::LevelFilter;
 
@@ -148,8 +147,7 @@ async fn move_test(driver: &mut Box<dyn HamiltonDriver>) -> Result<()> {
                 }
                 .into(),
             )
-            .await
-            .map_err(|_| Status::internal("Failed to send message over serial port"))?;
+            .await?;
         sleep(Duration::from_secs_f32(0.1)).await;
     }
     for _ in 0..15 {
@@ -162,8 +160,7 @@ async fn move_test(driver: &mut Box<dyn HamiltonDriver>) -> Result<()> {
                 }
                 .into(),
             )
-            .await
-            .map_err(|_| Status::internal("Failed to send message over serial port"))?;
+            .await?;
         sleep(Duration::from_secs_f32(0.1)).await;
     }
     let command = holonomic_controller::HolonomicWheelCommand::new(0.0, 0.0, 0.0, 0.0);
