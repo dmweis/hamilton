@@ -6,15 +6,12 @@ set -o pipefail
 set -o xtrace
 
 readonly targets="
-hamilton_web_controller
-hamilton_web_remote
 vehicle_config_test
-hamilton_web_controller_ir_tracker
 lidar_driver
 hamilton_controller
 "
 
-readonly TARGET_HOST=pi42.local
+readonly TARGET_HOST=hamilton2.local
 readonly TARGET_ARCH=armv7-unknown-linux-musleabihf
 
 readonly TARGET_PATH=/home/pi/
