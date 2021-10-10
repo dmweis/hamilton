@@ -11,7 +11,7 @@ lidar_driver
 hamilton_controller
 "
 
-readonly TARGET_HOST=pi42.local
+readonly TARGET_HOST=hamilton2.local
 readonly TARGET_ARCH=armv7-unknown-linux-musleabihf
 
 readonly TARGET_PATH=/home/pi/
