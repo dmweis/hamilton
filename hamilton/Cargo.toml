@@ -4,14 +4,6 @@ version = "0.1.0"
 authors = ["David Weis <dweis7@gmail.com>"]
 edition = "2018"
 
-[[bin]]
-name = "ir_tracker_printer"
-path = "src/bin/util/ir_tracker_printer.rs"
-
-[[bin]]
-name = "localization_receiver"
-path = "src/bin/util/localization_receiver.rs"
-
 [dependencies]
 tokio = { version = "1.12", features = ["macros", "time", "rt-multi-thread"] }
 clap = "3.0.0-beta.4"

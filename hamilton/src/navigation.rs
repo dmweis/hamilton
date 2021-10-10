@@ -47,47 +47,6 @@ impl fmt::Display for Pose2d {
     }
 }
 
-#[derive(Debug, Default)]
-pub struct OldNavigationController {
-    current_pose: Option<Pose2d>,
-    target_pose: Option<Pose2d>,
-}
-
-impl OldNavigationController {
-    pub fn localized(&self) -> bool {
-        self.current_pose.is_some()
-    }
-
-    pub fn update_current_pose(&mut self, pose: Pose2d) {
-        self.current_pose = Some(pose);
-    }
-
-    pub fn clear_current_pose(&mut self) {
-        self.current_pose = None;
-    }
-
-    pub fn update_target_pose(&mut self, pose: Pose2d) {
-        self.target_pose = Some(pose);
-    }
-
-    pub fn clear_target(&mut self) {
-        self.target_pose = None;
-    }
-
-    pub fn calculate_gains(&self) -> Option<MoveCommand> {
-        // maybe this should be done on `update_current_pose`
-        match (&self.current_pose, &self.target_pose) {
-            (Some(current), Some(target)) => Some(calculate_drive_gains(current, target)),
-            _ => None,
-        }
-    }
-
-    pub fn calculate_drive(&self) -> Option<HolonomicWheelCommand> {
-        self.calculate_gains()
-            .map(|move_command| HolonomicWheelCommand::from_move_command(&move_command))
-    }
-}
-
 static USER_COMMAND_TIMEOUT: Duration = Duration::from_secs(1);
 
 pub struct NavigationController {
