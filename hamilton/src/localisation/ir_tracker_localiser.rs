@@ -9,7 +9,7 @@ use std::{
     str,
 };
 use tokio::{net::UdpSocket as TokioUdpSocket, sync::mpsc, task};
-use tracing::{error, warn};
+use tracing::*;
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct IrTrackers {
