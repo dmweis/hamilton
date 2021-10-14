@@ -77,4 +77,16 @@ impl MoveCommand {
             yaw,
         }
     }
+
+    pub fn forward(&self) -> f32 {
+        self.forward
+    }
+
+    pub fn strafe(&self) -> f32 {
+        self.strafe
+    }
+
+    pub fn yaw(&self) -> f32 {
+        self.yaw
+    }
 }
