@@ -1,13 +1,21 @@
 use crate::navigation::Pose2d;
 use anyhow::Result;
 use nalgebra as na;
-use pose_publisher::{pose::Color, PoseClientUpdate, PosePublisher};
+use pose_publisher::{
+    pose::{Color, Shape},
+    PoseClientUpdate, PosePublisher,
+};
 use std::net::SocketAddrV4;
+
+const DEFAULT_ROBOT_NAME: &str = "Robot";
+const DEFAULT_TARGET_NAME: &str = "Robot";
 
 pub struct RvizClient {
     pose_publisher: PosePublisher,
     last_robot_pose: Option<Pose2d>,
     last_target_pose: Option<Pose2d>,
+    robot_name: String,
+    target_name: String,
 }
 
 impl RvizClient {
@@ -16,7 +24,17 @@ impl RvizClient {
             pose_publisher: PosePublisher::new(broadcast_address)?,
             last_robot_pose: None,
             last_target_pose: None,
+            robot_name: DEFAULT_ROBOT_NAME.to_owned(),
+            target_name: DEFAULT_TARGET_NAME.to_owned(),
         })
+    }
+
+    pub fn set_robot_name(&mut self, name: &str) {
+        self.robot_name = name.to_owned();
+    }
+
+    pub fn set_target_name(&mut self, name: &str) {
+        self.target_name = name.to_owned();
     }
 
     pub fn set_robot_pose(&mut self, robot_pose: Pose2d) {
@@ -36,7 +54,7 @@ impl RvizClient {
                 na::UnitQuaternion::from_euler_angles(0., 0., robot_pose.rotation().angle()).coords;
             update
                 .add(
-                    "robot",
+                    &self.robot_name,
                     (robot_pose.position().x, robot_pose.position().y, 0.1),
                 )
                 .with_rotation((
@@ -47,31 +65,33 @@ impl RvizClient {
                 ));
             update
                 .add(
-                    "robot direction",
+                    &format!("{} direction", &self.robot_name),
                     (
                         robot_pose.position().x + robot_target_vector.x,
                         robot_pose.position().y + robot_target_vector.y,
                         0.1,
                     ),
                 )
+                .with_shape(Shape::Sphere(0.02))
                 .with_color(Color::Green);
         }
         if let Some(target_pose) = self.last_target_pose.take() {
             // Same as above TODO
             update.add(
-                "target",
+                &self.target_name,
                 (target_pose.position().x, target_pose.position().y, 0.1),
             );
             let target_vector = target_pose.rotation() * na::Vector2::new(0.1, 0.);
             update
                 .add(
-                    "target direction",
+                    &format!("{} direction", &self.target_name),
                     (
                         target_pose.position().x + target_vector.x,
                         target_pose.position().y + target_vector.y,
                         0.1,
                     ),
                 )
+                .with_shape(Shape::Sphere(0.02))
                 .with_color(Color::Green);
         }
         self.pose_publisher.publish(update)?;
