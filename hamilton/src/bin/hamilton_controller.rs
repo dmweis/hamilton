@@ -68,7 +68,7 @@ async fn main() -> Result<()> {
 
     let mut navigation_controller = NavigationController::new(driver, localiser, rviz_client);
 
-    let map = Map::new(na::Vector2::new(1., 1.), na::Vector2::new(0., 0.));
+    let map = Map::new(na::Vector2::new(1., 1.), na::Vector2::new(0., -0.15));
     let (area_height, area_width) = map.get_size();
 
     let actions = ActionList::new(vec![
