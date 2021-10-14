@@ -8,7 +8,7 @@ use pose_publisher::{
 use std::net::SocketAddrV4;
 
 const DEFAULT_ROBOT_NAME: &str = "Robot";
-const DEFAULT_TARGET_NAME: &str = "Robot";
+const DEFAULT_TARGET_NAME: &str = "Target";
 
 pub struct RvizClient {
     pose_publisher: PosePublisher,
