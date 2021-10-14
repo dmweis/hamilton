@@ -1,7 +1,9 @@
 use crate::driver::HamiltonDriver;
 use crate::holonomic_controller::{HolonomicWheelCommand, MoveCommand};
+use crate::lidar::Lidar;
 use crate::localisation::LocalisationManager;
 use crate::rviz_client::RvizClient;
+use crate::simple_collision_detector::SimpleCollisionDetector;
 use anyhow::Result;
 use nalgebra as na;
 use std::fmt;
@@ -56,6 +58,7 @@ pub struct NavigationController {
     last_user_command: MoveCommand,
     last_user_command_time: Instant,
     rviz_client: RvizClient,
+    collision_detector: SimpleCollisionDetector,
 }
 
 impl NavigationController {
@@ -63,6 +66,7 @@ impl NavigationController {
         driver: Box<dyn HamiltonDriver>,
         localiser: LocalisationManager,
         rviz_client: RvizClient,
+        lidar: Lidar,
     ) -> Self {
         Self {
             driver,
@@ -71,6 +75,7 @@ impl NavigationController {
             last_user_command: MoveCommand::new(0., 0., 0.),
             last_user_command_time: Instant::now(),
             rviz_client,
+            collision_detector: SimpleCollisionDetector::new(lidar),
         }
     }
 
@@ -112,9 +117,13 @@ impl NavigationController {
             if let Some(target) = &self.target {
                 self.rviz_client.set_target_pose(target.clone());
                 let command = calculate_drive_gains(&pose, target);
-                self.driver
-                    .send(HolonomicWheelCommand::from_move_command(&command))
-                    .await?;
+                if self.collision_detector.check_move_safe(&command) {
+                    self.driver
+                        .send(HolonomicWheelCommand::from_move_command(&command))
+                        .await?;
+                } else {
+                    self.driver.send(HolonomicWheelCommand::stopped()).await?;
+                }
             }
             self.rviz_client.publish()?;
             return Ok(());
@@ -123,6 +132,14 @@ impl NavigationController {
         }
         self.driver.send(HolonomicWheelCommand::stopped()).await?;
         Ok(())
+    }
+
+    pub fn start_lidar(&mut self) {
+        self.collision_detector.start_lidar();
+    }
+
+    pub fn stop_lidar(&mut self) {
+        self.collision_detector.stop_lidar()
     }
 }
 

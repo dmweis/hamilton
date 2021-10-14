@@ -6,4 +6,5 @@ pub mod localisation;
 pub mod map;
 pub mod navigation;
 pub mod rviz_client;
+pub mod simple_collision_detector;
 pub mod util;

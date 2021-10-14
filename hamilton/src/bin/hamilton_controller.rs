@@ -66,7 +66,8 @@ async fn main() -> Result<()> {
         LocalisationManager::new(args.localisation_address, LocaliserType::IrMarker).await?;
     let rviz_client = RvizClient::new(args.pose_pub_address)?;
 
-    let mut navigation_controller = NavigationController::new(driver, localiser, rviz_client);
+    let mut navigation_controller =
+        NavigationController::new(driver, localiser, rviz_client, lidar_driver);
 
     let map = Map::new(na::Vector2::new(1., 1.), na::Vector2::new(0., -0.15));
     let (area_height, area_width) = map.get_size();
@@ -109,8 +110,8 @@ async fn main() -> Result<()> {
 
         if let Some(action) = controller_state.try_receive_action().await? {
             match action.id() {
-                "start_spin" => lidar_driver.start_motor(),
-                "stop_spin" => lidar_driver.stop_motor(),
+                "start_spin" => navigation_controller.start_lidar(),
+                "stop_spin" => navigation_controller.stop_lidar(),
                 _ => error!("Unknown action {:?}", action),
             }
         }
