@@ -58,8 +58,7 @@ async fn main() -> Result<()> {
         BodyConfig::load_from_default()?
     };
 
-    let mut lidar_driver = Lidar::open(args.lidar_port, args.point_cloud_addr)?;
-    lidar_driver.stop_motor();
+    let lidar_driver = Lidar::open(args.lidar_port, args.point_cloud_addr)?;
 
     let driver = hamilton_driver_from_config(&args.motor_port, body_config).await?;
     let localiser =
