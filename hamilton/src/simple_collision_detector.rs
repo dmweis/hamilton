@@ -1,6 +1,5 @@
 use crate::{holonomic_controller::MoveCommand, lidar::Lidar};
 use rplidar_driver::ScanPoint;
-use tracing::*;
 
 pub struct SimpleCollisionDetector {
     lidar: Lidar,
@@ -28,8 +27,16 @@ impl SimpleCollisionDetector {
     }
 }
 
-fn collision_check(_scan: &Vec<ScanPoint>, command: &MoveCommand) -> bool {
-    let move_direction = command.forward().atan2(command.strafe()).to_degrees();
-    info!("Moving in direction {}", move_direction);
-    false
+const SAFE_DISTANCE: f32 = 0.3;
+const SCAN_AREA: f32 = std::f32::consts::FRAC_PI_4;
+
+fn collision_check(scan: &[ScanPoint], command: &MoveCommand) -> bool {
+    // This isn't actually correct.... just inverted because the lidar is I think
+    let move_direction_lidar = command.strafe().atan2(-command.forward()) + std::f32::consts::PI;
+
+    scan.iter()
+        .filter(|point| point.is_valid())
+        .filter(|point| point.angle() > move_direction_lidar - SCAN_AREA)
+        .filter(|point| point.angle() < move_direction_lidar + SCAN_AREA)
+        .all(|point| point.distance() > SAFE_DISTANCE)
 }
