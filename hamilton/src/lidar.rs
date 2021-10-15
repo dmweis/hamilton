@@ -145,7 +145,7 @@ fn inner_lidar_loop(
                         .collect::<Vec<_>>();
                     let point_cloud = PointCloud2::from_points("hamilton_cloud", scan_points)
                         .with_color(Color::Red)
-                        .with_parent_frame_id("robot")
+                        .with_parent_frame_id("Robot")
                         .with_timeout(1.0);
                     point_cloud_publisher.publish(point_cloud)?;
                 }
