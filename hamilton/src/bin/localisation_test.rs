@@ -51,7 +51,12 @@ async fn main() -> Result<()> {
         tokio::time::sleep(Duration::from_millis(100)).await;
 
         if let Some(pose) = localiser.get_latest_pose().await? {
-            // info!("x {:?} y {:?}", pose.position().x, pose.position().y);
+            info!(
+                "x {:?} y {:?} angle {:?}",
+                pose.position().x,
+                pose.position().y,
+                pose.rotation().angle().to_degrees()
+            );
             rviz_client.set_robot_pose(pose);
 
             rviz_client.publish()?;
