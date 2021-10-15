@@ -58,11 +58,7 @@ impl IrTrackers {
         let local_points = self.points_in_screen_space();
         for current_point in &local_points {
             let mut points_copy = local_points.clone();
-            points_copy = points_copy
-                .into_iter()
-                .filter(|other_point| other_point != current_point)
-                .collect();
-            if points_copy.len() < 3 {
+            if points_copy.len() < 4 {
                 error!("Somehow ended up with less than 3 points");
                 return None;
             }
@@ -72,8 +68,15 @@ impl IrTrackers {
                     .unwrap()
             });
 
-            let first = points_copy.get(0).unwrap();
-            let second = points_copy.get(1).unwrap();
+            let likely_current = points_copy.get(0).unwrap();
+            if current_point != likely_current {
+                error!("Closest point is not current point");
+                return None;
+            }
+            let first = points_copy.get(1).unwrap();
+            let second = points_copy.get(2).unwrap();
+            let direction_point = points_copy.get(3).unwrap();
+            let direction_point_distance = distance(current_point, direction_point);
             let distance_first = distance(current_point, first);
             let distance_second = distance(current_point, second);
             if distance_first > TRIANGLE_REJECTION_DISTANCE
@@ -82,13 +85,17 @@ impl IrTrackers {
                 // reject triangle point
                 continue;
             }
+            if direction_point_distance > distance_first
+                || direction_point_distance > distance_second
+            {
+                warn!("Rejected point because direction point distance was smaller");
+                continue;
+            }
             // we are in triangle now
 
             let triangle_center_x = (current_point.x + first.x + second.x) / 3.;
             let triangle_center_y = (current_point.y + first.y + second.y) / 3.;
             let triangle_center = na::Point2::new(triangle_center_x, triangle_center_y);
-
-            let direction_point = points_copy.get(2).unwrap();
 
             let translation = direction_point.coords - triangle_center.coords;
             let normalized_translation = translation.normalize();
