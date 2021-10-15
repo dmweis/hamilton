@@ -15,8 +15,8 @@ use tracing::*;
 pub struct IrTrackers {
     frame_time: f32,
     point_count: usize,
-    height: i32,
-    width: i32,
+    height: f32,
+    width: f32,
     channels: i32,
     #[serde(rename = "useing_otsu_thresholding")]
     using_otsu_thresholding: bool,
@@ -35,18 +35,15 @@ impl IrTrackers {
     fn points_in_screen_space(&self) -> Vec<na::Point2<f32>> {
         let mut new_points = Vec::with_capacity(self.point_count as usize);
         for point in &self.points {
-            let width = self.width as f32;
-            let height = self.height as f32;
-            // TODO (David): I think this broke something about rotations and lidar
             if self.width > self.height {
-                let longer_side = width / height;
-                let new_x = linear_map(point.x, 0., width, 0., longer_side);
-                let new_y = linear_map(point.y, 0., height, 0., 1.);
+                let longer_side = self.width / self.height;
+                let new_x = linear_map(point.x, 0., self.width, 0., longer_side);
+                let new_y = linear_map(point.y, 0., self.height, 0., 1.);
                 new_points.push(na::Point2::new(new_x, new_y));
             } else {
-                let longer_side = height / width;
-                let new_x = linear_map(point.x, 0., width, 0., 1.);
-                let new_y = linear_map(point.y, 0., height, 0., longer_side);
+                let longer_side = self.height / self.width;
+                let new_x = linear_map(point.x, 0., self.width, 0., 1.);
+                let new_y = linear_map(point.y, 0., self.height, 0., longer_side);
                 new_points.push(na::Point2::new(new_x, new_y));
             }
         }
