@@ -85,8 +85,8 @@ impl IrTrackers {
                 // reject triangle point
                 continue;
             }
-            if direction_point_distance > distance_first
-                || direction_point_distance > distance_second
+            if direction_point_distance < distance_first
+                || direction_point_distance < distance_second
             {
                 warn!("Rejected point because direction point distance was smaller");
                 continue;
