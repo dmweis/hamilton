@@ -89,4 +89,8 @@ impl MoveCommand {
     pub fn yaw(&self) -> f32 {
         self.yaw
     }
+
+    pub fn with_rotation_only(&self) -> MoveCommand {
+        MoveCommand::new(0., 0., self.yaw)
+    }
 }

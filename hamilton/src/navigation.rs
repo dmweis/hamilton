@@ -100,11 +100,24 @@ impl NavigationController {
     pub async fn tick(&mut self) -> Result<()> {
         if self.last_user_command_time.elapsed() < USER_COMMAND_TIMEOUT {
             self.clear_target();
-            self.driver
-                .send(HolonomicWheelCommand::from_move_command(
-                    &self.last_user_command,
-                ))
-                .await?;
+
+            if self
+                .collision_detector
+                .check_move_safe(&self.last_user_command)
+            {
+                self.driver
+                    .send(HolonomicWheelCommand::from_move_command(
+                        &self.last_user_command,
+                    ))
+                    .await?;
+            } else {
+                self.driver
+                    .send(HolonomicWheelCommand::from_move_command(
+                        &self.last_user_command.with_rotation_only(),
+                    ))
+                    .await?;
+            }
+
             // try to publish robot pose even when not using localisation
             if let Some(pose) = self.localiser.get_latest_pose().await? {
                 self.rviz_client.set_robot_pose(pose);

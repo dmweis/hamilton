@@ -37,6 +37,7 @@ impl IrTrackers {
         for point in &self.points {
             let width = self.width as f32;
             let height = self.height as f32;
+            // TODO (David): I think this broke something about rotations and lidar
             if self.width > self.height {
                 let longer_side = width / height;
                 let new_x = linear_map(point.x, 0., width, 0., longer_side);
