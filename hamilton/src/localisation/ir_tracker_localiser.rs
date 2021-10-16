@@ -85,8 +85,8 @@ impl IrTrackers {
                 // reject triangle point
                 continue;
             }
-            if direction_point_distance > distance_first
-                || direction_point_distance > distance_second
+            if direction_point_distance < distance_first
+                || direction_point_distance < distance_second
             {
                 warn!("Rejected point because direction point distance was smaller");
                 continue;
@@ -175,4 +175,47 @@ pub async fn create_localization_subscriber(
         }
     });
     Ok(rx)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use approx::*;
+
+    fn create_ir_points(points: Vec<na::Point2<f32>>, height: f32, width: f32) -> IrTrackers {
+        IrTrackers {
+            frame_time: 0.,
+            point_count: points.len(),
+            height,
+            width,
+            channels: 0,
+            using_otsu_thresholding: false,
+            binarization_threshold: 0,
+            points,
+        }
+    }
+
+    #[test]
+    fn ir_tracker_orientation() {
+        // width is actually X here
+        // images are x right, y down
+        let points = vec![
+            na::Point2::new(500.0, 496.0),
+            na::Point2::new(500.0, 504.0),
+            na::Point2::new(506.928, 500.0),
+            na::Point2::new(502.309, 520.0),
+        ];
+        let points = create_ir_points(points, 1000.0, 1000.0);
+        let pose = points.find_tracker_pose();
+        assert!(pose.is_some());
+        let pose = pose.unwrap();
+        // These aren't particularly string asserts
+        // but they are good enough to get the orientation and pose correctly
+        assert_abs_diff_eq!(pose.rotation().angle().to_degrees(), 0., epsilon = 0.01);
+        assert_abs_diff_eq!(
+            pose.position(),
+            &na::Point2::new(0.5, 0.439),
+            epsilon = 0.001
+        );
+    }
 }

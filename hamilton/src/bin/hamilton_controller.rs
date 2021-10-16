@@ -10,6 +10,7 @@ use hamilton::{
     rviz_client::RvizClient,
 };
 use nalgebra as na;
+use pose_publisher::CommandSubscriber;
 use remote_controller::{start_remote_controller_server_with_map, Action, ActionList, AreaSize};
 use std::{
     net::SocketAddrV4,
@@ -40,6 +41,8 @@ struct Args {
     pose_pub_address: SocketAddrV4,
     #[clap(long, default_value = "239.0.0.22:7075")]
     point_cloud_addr: SocketAddrV4,
+    #[clap(long, default_value = "239.0.0.22:7076")]
+    command_receiver_addr: SocketAddrV4,
 }
 
 #[tokio::main]
@@ -82,6 +85,8 @@ async fn main() -> Result<()> {
         actions,
     );
 
+    let command_subscriber = CommandSubscriber::new(args.command_receiver_addr)?;
+
     let running = Arc::new(AtomicBool::new(true));
     let running_handle = running.clone();
 
@@ -90,12 +95,23 @@ async fn main() -> Result<()> {
         println!("Caught interrupt\nExiting...");
     })?;
 
+    let mut last_received_command_id = 0_u32;
+
     while running.load(Ordering::Acquire) {
         tokio::time::sleep(Duration::from_millis(100)).await;
         if let Some(canvas_touch) = controller_state.try_receive_canvas_touch().await? {
             let (target, heading) = map.canvas_touch_to_pose(canvas_touch);
             let target_pose = Pose2d::from_na(target, heading);
             navigation_controller.set_target(target_pose);
+        }
+
+        // TODO (David): Replace with a threaded receiver?
+        while let Ok(command) = command_subscriber.next() {
+            if command.id() > last_received_command_id {
+                last_received_command_id = command.id();
+                let target_pose = Pose2d::new(command.point(), command.angle());
+                navigation_controller.set_target(target_pose);
+            }
         }
 
         if let Some((gamepad_command, time)) = controller_state.get_last_input_with_time().await {

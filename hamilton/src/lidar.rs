@@ -147,7 +147,7 @@ fn inner_lidar_loop(
                         .with_color(Color::Red)
                         .with_parent_frame_id("Robot")
                         .with_timeout(1.0);
-                    point_cloud_publisher.publish(point_cloud)?;
+                    point_cloud_publisher.publish(&point_cloud)?;
                 }
                 Err(rplidar_driver::RposError::OperationTimeout) => (),
                 Err(error) => {

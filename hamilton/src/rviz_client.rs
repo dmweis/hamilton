@@ -94,7 +94,7 @@ impl RvizClient {
                 .with_shape(Shape::Sphere(0.02))
                 .with_color(Color::Green);
         }
-        self.pose_publisher.publish(update)?;
+        self.pose_publisher.publish(&update)?;
         Ok(())
     }
 }
