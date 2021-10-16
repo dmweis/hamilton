@@ -49,7 +49,7 @@ fn main() -> Result<()> {
                     let point_cloud = PointCloud2::from_points("example cloud", scan)
                         .with_color(Color::Red)
                         .with_parent_frame_id("robot");
-                    point_cloud_publisher.publish(point_cloud)?;
+                    point_cloud_publisher.publish(&point_cloud)?;
                 }
                 Err(err) => match err {
                     RposError::OperationTimeout => continue,
