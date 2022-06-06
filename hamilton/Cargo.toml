@@ -5,7 +5,7 @@ authors = ["David Weis <dweis7@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1.12", features = ["macros", "time", "rt-multi-thread"] }
+tokio = { version = "1.13", features = ["macros", "time", "rt-multi-thread"] }
 clap = "3.0.0-beta.4"
 thiserror = "1.0"
 anyhow = "1.0"
