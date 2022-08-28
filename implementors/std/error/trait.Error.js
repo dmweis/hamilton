@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["hamilton"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.63.0/std/error/trait.Error.html\" title=\"trait std::error::Error\">Error</a> for <a class=\"enum\" href=\"hamilton/driver/hamilton_dc_driver/enum.HamiltonError.html\" title=\"enum hamilton::driver::hamilton_dc_driver::HamiltonError\">HamiltonError</a>","synthetic":false,"types":["hamilton::driver::hamilton_dc_driver::HamiltonError"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

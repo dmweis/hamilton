@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["main",""],["wait_for_enter",""]],"struct":[["Args",""]]};
