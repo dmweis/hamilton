@@ -1,6 +1,6 @@
 [package]
 name = "hamilton"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["David Michael Weis <dweis7@gmail.com>"]
 description = "Hamilton robot"
@@ -30,7 +30,7 @@ systemd-units = {}
 
 [dependencies]
 # Async
-tokio = { version = "1.38.0", features = ["macros", "time", "rt-multi-thread"] }
+tokio = { version = "1.38.0", features = ["full"] }
 tokio-util = { version = "0.7.11", features = [
     "codec",
 ], default-features = false }
@@ -44,6 +44,8 @@ anyhow = "1.0.86"
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.117"
 config = "0.14"
+chrono = { version = "0.4.38", features = ["serde"] }
+
 
 nalgebra = { version = "0.33.0", features = ["serde-serialize"] }
 tokio-serial = { version = "5.4", default-features = false }

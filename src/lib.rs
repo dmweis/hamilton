@@ -2,6 +2,7 @@
 pub mod configuration;
 pub mod driver;
 pub mod error;
+pub mod gamepad;
 pub mod holonomic_controller;
 pub mod ioc;
 pub mod lidar;

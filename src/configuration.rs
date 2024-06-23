@@ -3,13 +3,15 @@ use serde::Deserialize;
 use std::{path::PathBuf, str};
 use tracing::*;
 
-use crate::{driver::BodyConfig, lidar::LidarConfig};
+use crate::{driver::BodyConfig, error::ErrorWrapper, lidar::LidarConfig};
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct AppConfig {
     pub body: BodyConfig,
     #[serde(default)]
     pub lidar: Option<LidarConfig>,
+    #[serde(default)]
+    pub zenoh: HamiltonZenohConfig,
 }
 
 impl AppConfig {
@@ -34,6 +36,33 @@ impl AppConfig {
         };
 
         Ok(settings.try_deserialize()?)
+    }
+}
+
+#[derive(Deserialize, Debug, Clone, Default)]
+pub struct HamiltonZenohConfig {
+    #[serde(default)]
+    pub connect: Vec<zenoh_config::EndPoint>,
+    #[serde(default)]
+    pub listen: Vec<zenoh_config::EndPoint>,
+    #[serde(default)]
+    pub config_path: Option<String>,
+}
+
+impl HamiltonZenohConfig {
+    pub fn get_zenoh_config(&self) -> anyhow::Result<zenoh::config::Config> {
+        let mut config = if let Some(conf_file) = &self.config_path {
+            zenoh::config::Config::from_file(conf_file).map_err(ErrorWrapper::ZenohError)?
+        } else {
+            zenoh::config::Config::default()
+        };
+        if !self.connect.is_empty() {
+            config.connect.endpoints.clone_from(&self.connect);
+        }
+        if !self.listen.is_empty() {
+            config.listen.endpoints.clone_from(&self.listen);
+        }
+        Ok(config)
     }
 }
 

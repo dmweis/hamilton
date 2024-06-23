@@ -1,7 +1,11 @@
 use anyhow::Result;
 use clap::Parser;
-use hamilton::{configuration, driver::hamilton_driver_from_config, lidar::Lidar, logging};
+use hamilton::{
+    configuration, driver::hamilton_driver_from_config, error::ErrorWrapper,
+    gamepad::start_gamepad_loop, lidar::Lidar, logging,
+};
 use std::path::PathBuf;
+use zenoh::prelude::r#async::*;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -32,7 +36,19 @@ async fn main() -> Result<()> {
         let _lidar_driver = Lidar::open(lidar_config.clone())?;
     }
 
-    let _driver = hamilton_driver_from_config(body_config).await?;
+    let driver = hamilton_driver_from_config(body_config).await?;
+
+    // zenoh
+    let zenoh_config = app_config.zenoh.get_zenoh_config()?;
+    let zenoh_session = zenoh::open(zenoh_config)
+        .res()
+        .await
+        .map_err(ErrorWrapper::ZenohError)?
+        .into_arc();
+
+    start_gamepad_loop(zenoh_session, driver).await?;
+
+    tokio::signal::ctrl_c().await?;
 
     Ok(())
 }
