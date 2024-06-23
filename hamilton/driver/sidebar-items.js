@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["DriverType"],"fn":["hamilton_driver_from_config"],"mod":["hamilton_dc_driver","hamilton_lss_driver"],"struct":["BodyConfig","MotorCommand","MotorConfig"],"trait":["HamiltonDriver"]};

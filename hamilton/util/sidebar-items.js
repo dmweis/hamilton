@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["latest_value_channel"],"struct":["LatestReceiver","LatestSender"]};

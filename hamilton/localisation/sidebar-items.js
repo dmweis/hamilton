@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["ir_tracker_localiser","openvr_localiser"]};
