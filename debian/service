@@ -1,0 +1,16 @@
+[Unit]
+Description=hamilton
+After=network-online.target nss-lookup.target
+Wants=network-online.target
+
+[Service]
+User=hamilton
+DynamicUser=yes
+StateDirectory=hamilton
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/usr/bin/hamilton --config /etc/hamilton/settings
+
+[Install]
+WantedBy=default.target

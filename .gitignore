@@ -1,3 +1,13 @@
+# Rust
 /target
+
+# Build
+docker_out/
+tmp
+
+# Developer settings
+dev_settings.yaml
+.env
+
+# Editor
 .vscode
-*.pyc

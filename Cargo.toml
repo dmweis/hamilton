@@ -1,6 +1,69 @@
-[workspace]
+[package]
+name = "hamilton"
+version = "0.2.0"
+edition = "2021"
+authors = ["David Michael Weis <dweis7@gmail.com>"]
+description = "Hamilton robot"
+license = "MIT OR APACHE"
+publish = false
+readme = "README.md"
+repository = "https://github.com/dmweis/hamilton"
 
-members = [
-    "hamilton",
-    "remote-controller",
+[package.metadata.deb]
+assets = [
+    [
+        "target/release/hamilton",
+        "/usr/bin/",
+        "755",
+    ],
+    [
+        "config/settings.yaml",
+        "/etc/hamilton/settings.yaml",
+        "644",
+    ],
 ]
+conf-files = ["/etc/hamilton/settings.yaml"]
+maintainer = "David Michael Weis <dweis7@gmail.com>"
+maintainer-scripts = "debian/"
+revision = ""
+systemd-units = {}
+
+[dependencies]
+# Async
+tokio = { version = "1.38.0", features = ["macros", "time", "rt-multi-thread"] }
+tokio-util = { version = "0.7.11", features = [
+    "codec",
+], default-features = false }
+futures = "0.3.30"
+async-trait = "0.1.80"
+
+# Util
+clap = { version = "4.5.7", features = ["derive"] }
+thiserror = "1.0.61"
+anyhow = "1.0.86"
+serde = { version = "1.0.203", features = ["derive"] }
+serde_json = "1.0.117"
+config = "0.14"
+
+nalgebra = { version = "0.33.0", features = ["serde-serialize"] }
+tokio-serial = { version = "5.4", default-features = false }
+bytes = "1.6.0"
+postcard-cobs = "0.2.0"
+
+lss_driver = "0.8.4"
+rplidar_driver = { git = "https://github.com/dmweis/rplidar_driver", branch = "main" }
+
+# Logging
+tracing = { version = "0.1", features = ["log"] }
+tracing-subscriber = { version = "0.3", features = [
+    "registry",
+    "env-filter",
+    "json",
+] }
+
+# zenoh
+zenoh = "0.11.0"
+zenoh-config = "0.11.0"
+
+[dev-dependencies]
+approx = "0.5.1"
