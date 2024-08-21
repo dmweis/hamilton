@@ -42,21 +42,21 @@ async fn run_gamepad_listener(
         if let Some(gamepad_message) = message.get_first() {
             let x = gamepad_message
                 .axis_state
-                .get(&messages::Axis::LeftStickX)
+                .get(&messages::Axis::LeftStickY)
                 .cloned()
                 .unwrap_or_default();
             let y = gamepad_message
                 .axis_state
-                .get(&messages::Axis::LeftStickY)
+                .get(&messages::Axis::LeftStickX)
                 .cloned()
                 .unwrap_or_default();
             let yaw = gamepad_message
                 .axis_state
-                .get(&messages::Axis::RightStickY)
+                .get(&messages::Axis::RightStickX)
                 .cloned()
                 .unwrap_or_default();
 
-            let command = HolonomicWheelCommand::from_move(x, y, yaw);
+            let command = HolonomicWheelCommand::from_move(x, -y, -yaw);
             driver.send(command).await?;
         }
     }

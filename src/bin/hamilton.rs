@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::Parser;
 use hamilton::{
     configuration, driver::hamilton_driver_from_config, error::ErrorWrapper,
-    gamepad::start_gamepad_loop, lidar::Lidar, logging,
+    gamepad::start_gamepad_loop, ioc::IocContainer, lidar::Lidar, logging,
 };
 use std::path::PathBuf;
 use zenoh::prelude::r#async::*;
@@ -45,6 +45,9 @@ async fn main() -> Result<()> {
         .await
         .map_err(ErrorWrapper::ZenohError)?
         .into_arc();
+
+    let ioc_container = IocContainer::global_instance();
+    ioc_container.register_arc(zenoh_session.clone());
 
     start_gamepad_loop(zenoh_session, driver).await?;
 
