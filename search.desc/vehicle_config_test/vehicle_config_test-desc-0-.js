@@ -1,0 +1,1 @@
+searchState.loadedDescShard("vehicle_config_test", 0, "Config path\nReturns the argument unchanged.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nCalls <code>U::from(self)</code>.\ntest wheels\nSerial port to use\ntest wheels")

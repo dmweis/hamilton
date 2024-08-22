@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["hamilton","vehicle_config_test"];
