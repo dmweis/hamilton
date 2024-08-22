@@ -47,21 +47,27 @@ async fn run_gamepad_listener(
 
         // tracing::info!(?message, "Received gamepad message");
         if let Some(gamepad_message) = message.get_first() {
-            let x = gamepad_message
-                .axis_state
-                .get(&messages::Axis::LeftStickY)
-                .cloned()
-                .unwrap_or_default();
-            let y = gamepad_message
-                .axis_state
-                .get(&messages::Axis::LeftStickX)
-                .cloned()
-                .unwrap_or_default();
-            let yaw = gamepad_message
-                .axis_state
-                .get(&messages::Axis::RightStickX)
-                .cloned()
-                .unwrap_or_default();
+            let x = apply_deadzone(
+                gamepad_message
+                    .axis_state
+                    .get(&messages::Axis::LeftStickY)
+                    .cloned()
+                    .unwrap_or_default(),
+            );
+            let y = apply_deadzone(
+                gamepad_message
+                    .axis_state
+                    .get(&messages::Axis::LeftStickX)
+                    .cloned()
+                    .unwrap_or_default(),
+            );
+            let yaw = apply_deadzone(
+                gamepad_message
+                    .axis_state
+                    .get(&messages::Axis::RightStickX)
+                    .cloned()
+                    .unwrap_or_default(),
+            );
 
             if gamepad_message
                 .button_down
@@ -92,5 +98,14 @@ async fn run_gamepad_listener(
             let command = HolonomicWheelCommand::from_move(x, -y, -yaw);
             driver.send(command).await?;
         }
+    }
+}
+
+fn apply_deadzone(value: f32) -> f32 {
+    const DEADZONE: f32 = 0.07;
+    if value.abs() < DEADZONE {
+        0.0
+    } else {
+        value
     }
 }
