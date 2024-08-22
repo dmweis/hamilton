@@ -21,9 +21,15 @@ pub async fn start_gamepad_loop(
         .await
         .map_err(ErrorWrapper::ZenohError)?;
 
-    tokio::spawn(async move {
-        while let Err(err) = run_gamepad_listener(&mut gamepad_subscriber, &mut *driver).await {
-            error!("Gamepad listener failed with {:?}", err);
+    tokio::spawn({
+        let zenoh_session = zenoh_session.clone();
+        async move {
+            while let Err(err) =
+                run_gamepad_listener(&mut gamepad_subscriber, &mut *driver, zenoh_session.clone())
+                    .await
+            {
+                error!("Gamepad listener failed with {:?}", err);
+            }
         }
     });
     Ok(())
@@ -32,6 +38,7 @@ pub async fn start_gamepad_loop(
 async fn run_gamepad_listener(
     subscriber: &mut FlumeSubscriber<'_>,
     driver: &mut dyn HamiltonDriver,
+    zenoh_session: Arc<Session>,
 ) -> anyhow::Result<()> {
     loop {
         let sample = subscriber.recv_async().await?;
@@ -55,6 +62,32 @@ async fn run_gamepad_listener(
                 .get(&messages::Axis::RightStickX)
                 .cloned()
                 .unwrap_or_default();
+
+            if gamepad_message
+                .button_down
+                .get(&messages::Button::DPadDown)
+                .cloned()
+                .unwrap_or_default()
+            {
+                zenoh_session
+                    .put("rplidar/state", "off")
+                    .res_async()
+                    .await
+                    .map_err(ErrorWrapper::ZenohError)?;
+            }
+
+            if gamepad_message
+                .button_down
+                .get(&messages::Button::DPadUp)
+                .cloned()
+                .unwrap_or_default()
+            {
+                zenoh_session
+                    .put("rplidar/state", "on")
+                    .res_async()
+                    .await
+                    .map_err(ErrorWrapper::ZenohError)?;
+            }
 
             let command = HolonomicWheelCommand::from_move(x, -y, -yaw);
             driver.send(command).await?;
